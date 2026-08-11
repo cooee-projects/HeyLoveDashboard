@@ -1,6 +1,6 @@
-// Vercel serverless function: pulls recent sent campaigns from Klaviyo.
-// Env var: KLAVIYO_API_KEY (private key, pk_...). Read-only scopes are enough.
-// Emails include the real rendered HTML; SMS include the actual message copy.
+// Vercel serverless function: pulls this month's campaigns (sent AND scheduled)
+// from Klaviyo. Env var: KLAVIYO_API_KEY (private key, pk_..., read-only scopes).
+// Emails include real rendered HTML for full previews.
 
 const BASE = "https://a.klaviyo.com/api";
 
@@ -11,11 +11,14 @@ async function k(path) {
       revision: "2024-10-15",
       accept: "application/vnd.api+json",
     },
+    signal: AbortSignal.timeout(8000),
   });
   const j = await r.json();
   if (j.errors) throw new Error(j.errors[0]?.detail || "Klaviyo error");
   return j;
 }
+
+const SHOW = ["sent", "sending", "scheduled", "queued"]; // statuses worth showing
 
 async function campaigns(channel) {
   const filter = encodeURIComponent(`equals(messages.channel,'${channel}')`);
@@ -25,24 +28,27 @@ async function campaigns(channel) {
     if (inc.type === "campaign-message") msgs[inc.id] = inc;
   }
   return (j.data || [])
-    .filter((c) => (c.attributes.status || "").toLowerCase() !== "draft")
-    .slice(0, 6)
     .map((c) => {
+      const a = c.attributes || {};
       const msgId = (c.relationships?.["campaign-messages"]?.data || [])[0]?.id;
       const msg = msgs[msgId];
       const def = msg?.attributes?.definition || msg?.attributes || {};
       const content = def.content || {};
+      const status = (a.status || "").toLowerCase();
       return {
         id: c.id,
         msgId,
-        name: c.attributes.name,
-        status: c.attributes.status,
-        date: c.attributes.send_time || c.attributes.scheduled_at || c.attributes.created_at,
+        name: a.name,
+        status: a.status,
+        scheduled: !status.includes("sent") && !status.includes("sending"),
+        date: a.send_time || a.scheduled_at || a.send_options?.datetime || a.created_at,
         subject: content.subject || "",
         preview: content.preview_text || "",
         body: content.body || "",
       };
-    });
+    })
+    .filter((c) => SHOW.some((s) => (c.status || "").toLowerCase().includes(s)))
+    .slice(0, 12);
 }
 
 module.exports = async (req, res) => {
@@ -53,9 +59,8 @@ module.exports = async (req, res) => {
 
   try {
     const emails = await campaigns("email");
-    // Fetch real template HTML for the most recent 4 emails.
     await Promise.all(
-      emails.slice(0, 4).map(async (e) => {
+      emails.slice(0, 8).map(async (e) => {
         try {
           if (!e.msgId) return;
           const t = await k(`campaign-messages/${e.msgId}/template/`);
@@ -65,13 +70,13 @@ module.exports = async (req, res) => {
         }
       })
     );
-    out.emails = emails.slice(0, 4);
+    out.emails = emails;
   } catch (e) {
     out.errors.push("email campaigns: " + e.message);
   }
 
   try {
-    out.sms = (await campaigns("sms")).slice(0, 4);
+    out.sms = await campaigns("sms");
   } catch (e) {
     out.errors.push("sms campaigns: " + e.message);
   }
