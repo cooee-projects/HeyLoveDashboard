@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hey Love — Content Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#faf6f2; --card:#ffffff; --ink:#2b2320; --muted:#8a7d76;
+    --accent:#e0748c; --accent-deep:#d05e78; --accent-soft:#fbe9ee; --cream:#fdf6ee;
+    --radius:18px; --shadow:0 2px 14px rgba(43,35,32,.07);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:'Outfit',sans-serif;font-weight:300;padding:32px 24px 64px;max-width:1200px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:8px}
+  .brand{display:flex;align-items:center;gap:16px}
+  .logo{color:var(--accent);font-family:'Cormorant Garamond',serif;font-weight:600;font-size:30px;letter-spacing:.22em;text-transform:uppercase;white-space:nowrap}
+  h1{font-family:'Outfit',sans-serif;font-size:24px;font-weight:400}
+  .period{color:var(--muted);font-size:14px}
+  .subtitle{color:var(--muted);margin-bottom:32px;font-size:15px}
+  section{margin-bottom:44px}
+  h2{font-family:'Outfit',sans-serif;font-size:21px;font-weight:500;text-transform:capitalize;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);display:inline-block}
+  .loading{color:var(--muted);padding:20px 0}
+  .error{background:#fdecec;border:1px solid #f2c4c4;border-radius:12px;padding:14px 18px;color:#933;font-size:14px}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
+  .stat{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px}
+  .stat .label{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .stat .value{font-size:30px;font-weight:300;margin:6px 0 2px}
+  .stat .delta{font-size:13px;font-weight:300}
+  .up{color:#1e8a5a}.down{color:#c0392b}
+
+  .two-col{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:28px;margin-bottom:44px}
+  .two-col section{margin-bottom:0}
+  .events{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:8px 22px}
+  .event{display:flex;align-items:baseline;gap:18px;padding:14px 0;border-bottom:1px solid #f2ebe5}
+  .event:last-child{border-bottom:none}
+  .event .date{min-width:72px;font-weight:500;color:var(--accent);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+  .event .what{font-size:15px}
+  .event .tag{margin-left:auto;font-size:11px;background:var(--accent-soft);color:var(--accent-deep);border-radius:20px;padding:4px 10px;white-space:nowrap}
+  .events.pinky{background:#f9e3e9}
+  .events.pinky .event{border-bottom-color:#f0d1da}
+  .events.pinky .date{color:var(--accent-deep)}
+  .events.pinky .tag{background:#fff;color:var(--accent-deep)}
+
+  .videos{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+  .video{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .thumb{aspect-ratio:9/12;background:linear-gradient(135deg,#f6d6de,#e8b7c4);position:relative}
+  .thumb iframe{width:100%;height:100%;border:0}
+  .thumb a.fallback{display:flex;align-items:center;justify-content:center;width:100%;height:100%;text-decoration:none}
+  .play{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--accent)}
+  .badge{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.85);border-radius:20px;font-size:11px;font-weight:600;padding:4px 10px;z-index:2}
+  .vmeta{padding:12px 14px}
+  .vmeta .t{font-weight:300;font-size:14px}
+  .vmeta .s{color:var(--muted);font-size:12px;margin-top:3px}
+
+  .phones{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+  .phone{background:var(--card);border-radius:26px;box-shadow:var(--shadow);padding:18px;border:1px solid #efe7e1}
+  .phone .from{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px}
+  .bubble{background:var(--accent-soft);border-radius:16px 16px 16px 4px;padding:12px 14px;font-size:14px;line-height:1.45;margin-bottom:8px;white-space:pre-wrap}
+  .phone .when{font-size:11px;color:var(--muted)}
+
+  .emails{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+  .email{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .epreview{aspect-ratio:4/3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:linear-gradient(180deg,#fdf1f4,#f9dfe6);padding:20px;text-align:center;overflow:hidden}
+  .epreview img{width:100%;height:100%;object-fit:cover;object-position:top}
+  .epreview .h{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600}
+  .epreview .b{font-size:12px;color:var(--muted)}
+  .emeta{padding:12px 14px}
+  .emeta .t{font-weight:300;font-size:14px}
+  .emeta .s{color:var(--muted);font-size:12px;margin-top:3px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo">Hey Love</div>
+    <h1>Content Dashboard</h1>
+  </div>
+  <div class="period" id="period"></div>
+</header>
+<p class="subtitle">Everything we made and how it performed, in one place.</p>
+<div id="app" class="loading">Loading…</div>
+
+<script>
+const fmtN = n => n == null ? "—" : n >= 1000 ? (n/1000).toFixed(n >= 10000 ? 0 : 1) + "k" : String(n);
+const fmt$ = n => n == null ? "—" : "$" + Number(n).toLocaleString();
+const fmtD = d => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US",{weekday:"short", day:"numeric"}) : "";
+const fmtFull = d => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US",{month:"short", day:"numeric"}) : "";
+const esc = s => (s || "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function delta(cur, prev, money){
+  if (cur == null || prev == null || prev === 0) return "";
+  const pct = ((cur - prev) / prev) * 100;
+  const cls = pct >= 0 ? "up" : "down";
+  const arrow = pct >= 0 ? "▲" : "▼";
+  return `<div class="delta ${cls}">${arrow} ${Math.abs(pct).toFixed(0)}%</div>`;
+}
+const card = (label, value, deltaHtml) =>
+  `<div class="stat"><div class="label">${label}</div><div class="value">${value}</div>${deltaHtml || ""}</div>`;
+
+function driveEmbed(link){
+  const m = (link || "").match(/\/file\/d\/([^\/]+)/);
+  if (m) return `<iframe src="https://drive.google.com/file/d/${m[1]}/preview" allow="autoplay" loading="lazy"></iframe>`;
+  if (link) return `<a class="fallback" href="${esc(link)}" target="_blank" rel="noopener"><div class="play">▶</div></a>`;
+  return `<div class="fallback"><div class="play">▶</div></div>`;
+}
+
+async function load(){
+  const app = document.getElementById("app");
+  let d, m = {};
+  try {
+    const [r, mr] = await Promise.all([
+      fetch("/api/data"),
+      fetch("/api/meta").then(x => x.ok ? x.json() : {}).catch(() => ({})),
+    ]);
+    d = await r.json();
+    if (d.error) throw new Error(d.error);
+    if (mr && mr.configured) m = mr;
+  } catch(e) {
+    app.className = "";
+    app.innerHTML = `<div class="error">Couldn't load data: ${esc(String(e.message || e))}</div>`;
+    return;
+  }
+  // Live Meta values win; Notion "Meta Stats — Monthly" fills the gaps.
+  const c = Object.assign({}, d.stats.current || {}), p = d.stats.previous || {};
+  for (const k of ["adSpend","adRevenue","roas","aov","clicks","totalFollowers","newFollowers","totalReach","totalEngagement"]) {
+    if (m[k] != null) c[k] = k === "roas" ? Math.round(m[k] * 10) / 10 : Math.round(m[k]);
+  }
+  document.getElementById("period").textContent =
+    (c.month ? c.month + " · " : "") + "updated " + new Date(d.updated).toLocaleDateString("en-US",{month:"short", day:"numeric"});
+
+  app.className = "";
+  app.innerHTML = `
+  <section><h2><span class="dot"></span>Meta Ads Performance</h2><div class="stats">
+    ${card("Meta Ad Spend", fmt$(c.adSpend), delta(c.adSpend, p.adSpend))}
+    ${card("Meta Ad Revenue", fmt$(c.adRevenue), delta(c.adRevenue, p.adRevenue))}
+    ${card("ROAS", c.roas != null ? c.roas + "x" : "—", delta(c.roas, p.roas))}
+    ${card("AOV", fmt$(c.aov), delta(c.aov, p.aov))}
+    ${card("Clicks", fmtN(c.clicks), delta(c.clicks, p.clicks))}
+  </div></section>
+
+  <section><h2><span class="dot"></span>Account Growth</h2><div class="stats">
+    ${card("Total Followers", fmtN(c.totalFollowers), delta(c.totalFollowers, p.totalFollowers))}
+    ${card("New Followers", fmtN(c.newFollowers), delta(c.newFollowers, p.newFollowers))}
+    ${card("Total Reach", fmtN(c.totalReach), delta(c.totalReach, p.totalReach))}
+    ${card("Total Engagement", fmtN(c.totalEngagement), delta(c.totalEngagement, p.totalEngagement))}
+  </div></section>
+
+  <div class="two-col">
+    <section><h2><span class="dot"></span>Upcoming Events</h2><div class="events">
+      ${d.events.length ? d.events.map(e => `<div class="event"><div class="date">${fmtD(e.date)}</div><div class="what">${esc(e.name)}</div>${e.tags[0] ? `<div class="tag">${esc(e.tags[0])}</div>` : ""}</div>`).join("") : `<div class="event"><div class="what">Nothing scheduled — add rows to the FY26 MKT Calendar in Notion.</div></div>`}
+    </div></section>
+    <section><h2><span class="dot"></span>Tasks In Progress</h2><div class="events pinky">
+      ${d.tasks.length ? d.tasks.map(t => `<div class="event"><div class="date">${t.due ? "Due " + fmtFull(t.due) : "—"}</div><div class="what">${esc(t.name)}</div>${t.priority[0] ? `<div class="tag">${esc(t.priority[0])}</div>` : ""}</div>`).join("") : `<div class="event"><div class="what">All caught up 🎉</div></div>`}
+    </div></section>
+  </div>
+
+  <section><h2><span class="dot"></span>Social Videos</h2><div class="videos">
+    ${d.videos.length ? d.videos.map(v => `<div class="video"><div class="thumb">${v.platform ? `<span class="badge">${esc(v.platform)}</span>` : ""}${driveEmbed(v.link)}</div><div class="vmeta"><div class="t">${esc(v.name)}</div><div class="s">${v.date ? "Posted " + fmtFull(v.date) : ""}${v.views != null ? " · " + fmtN(v.views) + " views" : ""}</div></div></div>`).join("") : `<div class="loading">Add videos to the Social Videos database in Notion.</div>`}
+  </div></section>
+
+  <section><h2><span class="dot"></span>Text Messages</h2><div class="phones">
+    ${d.sms.length ? d.sms.map(s => `<div class="phone"><div class="from">Hey Love · SMS</div><div class="bubble">${esc(s.copy || s.focus)}</div><div class="when">${s.date ? "Sent " + fmtFull(s.date) : esc(s.status)}</div></div>`).join("") : `<div class="loading">Add campaigns to SMS CAMPAIGNS in Notion.</div>`}
+  </div></section>
+
+  <section><h2><span class="dot"></span>Email Designs</h2><div class="emails">
+    ${d.emails.length ? d.emails.map(e => `<div class="email"><div class="epreview">${e.images[0] ? `<img src="${esc(e.images[0])}" alt="">` : `<div class="h">${esc(e.subject || e.focus)}</div><div class="b">${esc(e.preview)}</div>`}</div><div class="emeta"><div class="t">${esc(e.focus)}</div><div class="s">${e.date ? "Sent " + fmtFull(e.date) : esc(e.status)}</div></div></div>`).join("") : `<div class="loading">Add campaigns to EMAIL CAMPAIGNS in Notion.</div>`}
+  </div></section>`;
+}
+load();
+</script>
+</body>
+</html>
