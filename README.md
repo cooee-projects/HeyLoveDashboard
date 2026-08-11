@@ -11,6 +11,7 @@ A live dashboard that reads from Notion (stats, events, tasks, SMS, emails, vide
    - `META_TOKEN` — your Meta system-user token (starts with `EAA...`) — optional
    - `META_AD_ACCOUNT` — `act_10152267649979326` — optional
    - `META_PAGE_ID` — your Facebook Page ID — optional (auto-detected if omitted)
+   - `KLAVIYO_API_KEY` — private key (`pk_...`), read-only Campaigns/Templates scopes — optional
 4. Click **Deploy**. Done — Vercel gives you a URL like `hey-love-dashboard.vercel.app`.
 
 ## How data flows
@@ -21,8 +22,8 @@ A live dashboard that reads from Notion (stats, events, tasks, SMS, emails, vide
 | Upcoming Events | FY26 MKT Calendar (shows today onward) |
 | Tasks In Progress | Task database (hides Done tasks) |
 | Social Videos | "Social Videos" database (paste Google Drive file links) |
-| Text Messages | SMS CAMPAIGNS |
-| Email Designs | EMAIL CAMPAIGNS (uses Files & media image if attached, otherwise subject/preview text) |
+| Text Messages | Live from Klaviyo when `KLAVIYO_API_KEY` is set (real sent SMS copy); otherwise Notion SMS CAMPAIGNS |
+| Email Designs | Live from Klaviyo when `KLAVIYO_API_KEY` is set (real email HTML previews); otherwise Notion EMAIL CAMPAIGNS |
 
 Data refreshes automatically (cached ~5 minutes).
 

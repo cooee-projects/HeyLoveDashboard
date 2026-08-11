@@ -67,6 +67,8 @@
   .email{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
   .epreview{aspect-ratio:4/3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:linear-gradient(180deg,#fdf1f4,#f9dfe6);padding:20px;text-align:center;overflow:hidden}
   .epreview img{width:100%;height:100%;object-fit:cover;object-position:top}
+  .epreview.ehtml{display:block;padding:0;position:relative}
+  .epreview.ehtml iframe{width:600px;height:450px;border:0;transform:scale(.42);transform-origin:top left;pointer-events:none}
   .epreview .h{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600}
   .epreview .b{font-size:12px;color:var(--muted)}
   .emeta{padding:12px 14px}
@@ -111,15 +113,17 @@ function driveEmbed(link){
 
 async function load(){
   const app = document.getElementById("app");
-  let d, m = {};
+  let d, m = {}, kl = {};
   try {
-    const [r, mr] = await Promise.all([
+    const [r, mr, kr] = await Promise.all([
       fetch("/api/data"),
       fetch("/api/meta").then(x => x.ok ? x.json() : {}).catch(() => ({})),
+      fetch("/api/klaviyo").then(x => x.ok ? x.json() : {}).catch(() => ({})),
     ]);
     d = await r.json();
     if (d.error) throw new Error(d.error);
     if (mr && mr.configured) m = mr;
+    if (kr && kr.configured) kl = kr;
   } catch(e) {
     app.className = "";
     app.innerHTML = `<div class="error">Couldn't load data: ${esc(String(e.message || e))}</div>`;
@@ -164,11 +168,13 @@ async function load(){
   </div></section>
 
   <section><h2><span class="dot"></span>Text Messages</h2><div class="phones">
-    ${d.sms.length ? d.sms.map(s => `<div class="phone"><div class="from">Hey Love · SMS</div><div class="bubble">${esc(s.copy || s.focus)}</div><div class="when">${s.date ? "Sent " + fmtFull(s.date) : esc(s.status)}</div></div>`).join("") : `<div class="loading">Add campaigns to SMS CAMPAIGNS in Notion.</div>`}
+    ${(kl.sms && kl.sms.length) ? kl.sms.map(s => `<div class="phone"><div class="from">Hey Love · SMS</div><div class="bubble">${esc(s.body || s.name)}</div><div class="when">${s.date ? "Sent " + fmtFull(s.date.slice(0,10)) : esc(s.status || "")}</div></div>`).join("")
+      : d.sms.length ? d.sms.map(s => `<div class="phone"><div class="from">Hey Love · SMS</div><div class="bubble">${esc(s.copy || s.focus)}</div><div class="when">${s.date ? "Sent " + fmtFull(s.date) : esc(s.status)}</div></div>`).join("") : `<div class="loading">Add campaigns to SMS CAMPAIGNS in Notion.</div>`}
   </div></section>
 
   <section><h2><span class="dot"></span>Email Designs</h2><div class="emails">
-    ${d.emails.length ? d.emails.map(e => `<div class="email"><div class="epreview">${e.images[0] ? `<img src="${esc(e.images[0])}" alt="">` : `<div class="h">${esc(e.subject || e.focus)}</div><div class="b">${esc(e.preview)}</div>`}</div><div class="emeta"><div class="t">${esc(e.focus)}</div><div class="s">${e.date ? "Sent " + fmtFull(e.date) : esc(e.status)}</div></div></div>`).join("") : `<div class="loading">Add campaigns to EMAIL CAMPAIGNS in Notion.</div>`}
+    ${(kl.emails && kl.emails.length) ? kl.emails.map(e => `<div class="email"><div class="epreview${e.html ? " ehtml" : ""}">${e.html ? `<iframe sandbox="" loading="lazy" srcdoc="${esc(e.html)}"></iframe>` : `<div class="h">${esc(e.subject || e.name)}</div><div class="b">${esc(e.preview)}</div>`}</div><div class="emeta"><div class="t">${esc(e.name)}</div><div class="s">${e.date ? "Sent " + fmtFull(e.date.slice(0,10)) : esc(e.status || "")}</div></div></div>`).join("")
+      : d.emails.length ? d.emails.map(e => `<div class="email"><div class="epreview">${e.images[0] ? `<img src="${esc(e.images[0])}" alt="">` : `<div class="h">${esc(e.subject || e.focus)}</div><div class="b">${esc(e.preview)}</div>`}</div><div class="emeta"><div class="t">${esc(e.focus)}</div><div class="s">${e.date ? "Sent " + fmtFull(e.date) : esc(e.status)}</div></div></div>`).join("") : `<div class="loading">Add campaigns to EMAIL CAMPAIGNS in Notion.</div>`}
   </div></section>`;
 }
 load();
