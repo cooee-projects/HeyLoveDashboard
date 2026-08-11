@@ -67,8 +67,19 @@
   .email{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
   .epreview{aspect-ratio:4/3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:linear-gradient(180deg,#fdf1f4,#f9dfe6);padding:20px;text-align:center;overflow:hidden}
   .epreview img{width:100%;height:100%;object-fit:cover;object-position:top}
-  .epreview.ehtml{display:block;padding:0;position:relative}
+  .epreview.ehtml{display:block;padding:0;position:relative;cursor:pointer}
   .epreview.ehtml iframe{width:600px;height:450px;border:0;transform:scale(.42);transform-origin:top left;pointer-events:none}
+  .sched{position:absolute;top:10px;right:10px;z-index:2;font-size:11px;font-weight:600;border-radius:20px;padding:4px 10px;background:#fff3d6;color:#8a6d1f}
+  .sentb{position:absolute;top:10px;right:10px;z-index:2;font-size:11px;font-weight:600;border-radius:20px;padding:4px 10px;background:#e2f2e6;color:#1e6b40}
+  .phone{position:relative}
+  .phone .stag{font-size:11px;font-weight:600;border-radius:20px;padding:3px 9px;background:#fff3d6;color:#8a6d1f;margin-left:6px}
+  /* full email modal */
+  .modal{position:fixed;inset:0;background:rgba(43,35,32,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
+  .modal .box{background:#fff;border-radius:16px;width:min(680px,94vw);height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+  .modal .bar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid #f0e9e3}
+  .modal .bar .mt{font-weight:500;font-size:15px}
+  .modal .bar button{border:0;background:var(--accent-soft);color:var(--accent-deep);border-radius:20px;padding:6px 14px;font-family:inherit;font-size:13px;cursor:pointer}
+  .modal iframe{flex:1;width:100%;border:0}
   .epreview .h{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600}
   .epreview .b{font-size:12px;color:var(--muted)}
   .emeta{padding:12px 14px}
@@ -104,6 +115,26 @@ function delta(cur, prev, money){
 const card = (label, value, deltaHtml) =>
   `<div class="stat"><div class="label">${label}</div><div class="value">${value}</div>${deltaHtml || ""}</div>`;
 
+// Everything for the current month (sent + scheduled), oldest first;
+// falls back to the 4 most recent if the month is empty.
+function monthView(items){
+  const now = new Date(), ym = now.toISOString().slice(0,7);
+  const inMonth = items.filter(x => x.date && (x.date.slice(0,7) === ym || (x.scheduled && new Date(x.date) > now)));
+  const list = inMonth.length ? inMonth : items.slice(0,4);
+  return list.sort((a,b) => (a.date || "") < (b.date || "") ? -1 : 1);
+}
+
+function openEmail(i){
+  const e = (window.__emails || [])[i];
+  if (!e || !e.html) return;
+  const wrap = document.createElement("div");
+  wrap.className = "modal";
+  wrap.innerHTML = `<div class="box"><div class="bar"><div class="mt">${esc(e.name)}${e.subject ? " — " + esc(e.subject) : ""}</div><button>Close ✕</button></div><iframe sandbox=""></iframe></div>`;
+  wrap.addEventListener("click", ev => { if (ev.target === wrap || ev.target.tagName === "BUTTON") wrap.remove(); });
+  document.body.appendChild(wrap);
+  wrap.querySelector("iframe").srcdoc = e.html;
+}
+
 function driveEmbed(link){
   const m = (link || "").match(/\/file\/d\/([^\/]+)/);
   if (m) return `<iframe src="https://drive.google.com/file/d/${m[1]}/preview" allow="autoplay" loading="lazy"></iframe>`;
@@ -115,10 +146,13 @@ async function load(){
   const app = document.getElementById("app");
   let d, m = {}, kl = {};
   try {
+    const opt = (url) => fetch(url, { signal: AbortSignal.timeout(8000) })
+      .then(x => x.ok ? x.json() : {})
+      .catch(e => { console.warn(url, e); return {}; });
     const [r, mr, kr] = await Promise.all([
       fetch("/api/data"),
-      fetch("/api/meta").then(x => x.ok ? x.json() : {}).catch(() => ({})),
-      fetch("/api/klaviyo").then(x => x.ok ? x.json() : {}).catch(() => ({})),
+      opt("/api/meta"),
+      opt("/api/klaviyo"),
     ]);
     d = await r.json();
     if (d.error) throw new Error(d.error);
@@ -167,15 +201,16 @@ async function load(){
     ${d.videos.length ? d.videos.map(v => `<div class="video"><div class="thumb">${v.platform ? `<span class="badge">${esc(v.platform)}</span>` : ""}${driveEmbed(v.link)}</div><div class="vmeta"><div class="t">${esc(v.name)}</div><div class="s">${v.date ? "Posted " + fmtFull(v.date) : ""}${v.views != null ? " · " + fmtN(v.views) + " views" : ""}</div></div></div>`).join("") : `<div class="loading">Add videos to the Social Videos database in Notion.</div>`}
   </div></section>
 
-  <section><h2><span class="dot"></span>Text Messages</h2><div class="phones">
-    ${(kl.sms && kl.sms.length) ? kl.sms.map(s => `<div class="phone"><div class="from">Hey Love · SMS</div><div class="bubble">${esc(s.body || s.name)}</div><div class="when">${s.date ? "Sent " + fmtFull(s.date.slice(0,10)) : esc(s.status || "")}</div></div>`).join("")
+  <section><h2><span class="dot"></span>Text Messages${kl.sms ? " — This Month" : ""}</h2><div class="phones">
+    ${(kl.sms && kl.sms.length) ? monthView(kl.sms).map(s => `<div class="phone"><div class="from">Hey Love · SMS${s.scheduled ? `<span class="stag">Scheduled</span>` : ""}</div><div class="bubble">${esc(s.body || s.name)}</div><div class="when">${s.date ? (s.scheduled ? "Sends " : "Sent ") + fmtFull(s.date.slice(0,10)) : esc(s.status || "")}</div></div>`).join("")
       : d.sms.length ? d.sms.map(s => `<div class="phone"><div class="from">Hey Love · SMS</div><div class="bubble">${esc(s.copy || s.focus)}</div><div class="when">${s.date ? "Sent " + fmtFull(s.date) : esc(s.status)}</div></div>`).join("") : `<div class="loading">Add campaigns to SMS CAMPAIGNS in Notion.</div>`}
   </div></section>
 
-  <section><h2><span class="dot"></span>Email Designs</h2><div class="emails">
-    ${(kl.emails && kl.emails.length) ? kl.emails.map(e => `<div class="email"><div class="epreview${e.html ? " ehtml" : ""}">${e.html ? `<iframe sandbox="" loading="lazy" srcdoc="${esc(e.html)}"></iframe>` : `<div class="h">${esc(e.subject || e.name)}</div><div class="b">${esc(e.preview)}</div>`}</div><div class="emeta"><div class="t">${esc(e.name)}</div><div class="s">${e.date ? "Sent " + fmtFull(e.date.slice(0,10)) : esc(e.status || "")}</div></div></div>`).join("")
+  <section><h2><span class="dot"></span>Email Designs${kl.emails ? " — This Month" : ""}</h2><div class="emails">
+    ${(kl.emails && kl.emails.length) ? monthView(kl.emails).map((e) => `<div class="email"><div class="epreview${e.html ? " ehtml" : ""}" ${e.html ? `onclick="openEmail(${kl.emails.indexOf(e)})" title="Click to preview full email"` : ""}><span class="${e.scheduled ? "sched" : "sentb"}">${e.scheduled ? "Scheduled" : "Sent"}</span>${e.html ? `<iframe sandbox="" loading="lazy" srcdoc="${esc(e.html)}"></iframe>` : `<div class="h">${esc(e.subject || e.name)}</div><div class="b">${esc(e.preview)}</div>`}</div><div class="emeta"><div class="t">${esc(e.name)}</div><div class="s">${e.date ? (e.scheduled ? "Sends " : "Sent ") + fmtFull(e.date.slice(0,10)) : esc(e.status || "")}</div></div></div>`).join("")
       : d.emails.length ? d.emails.map(e => `<div class="email"><div class="epreview">${e.images[0] ? `<img src="${esc(e.images[0])}" alt="">` : `<div class="h">${esc(e.subject || e.focus)}</div><div class="b">${esc(e.preview)}</div>`}</div><div class="emeta"><div class="t">${esc(e.focus)}</div><div class="s">${e.date ? "Sent " + fmtFull(e.date) : esc(e.status)}</div></div></div>`).join("") : `<div class="loading">Add campaigns to EMAIL CAMPAIGNS in Notion.</div>`}
   </div></section>`;
+  window.__emails = kl.emails || [];
 }
 load();
 </script>
