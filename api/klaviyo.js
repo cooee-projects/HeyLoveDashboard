@@ -105,7 +105,7 @@ async function emailCampaignPerformance() {
   const attributes = {
     timeframe: { key: "last_30_days" },
     statistics,
-    filter: `any(campaign_id,[${idList}])`,
+    filter: `contains-any(campaign_id,[${idList}])`,
   };
   if (conversionMetricId) attributes.conversion_metric_id = conversionMetricId;
 
@@ -141,8 +141,17 @@ module.exports = async (req, res) => {
   }
   const out = { configured: true, errors: [] };
 
-  try {
-    const emails = await campaigns("email");
+  // Run all three independent Klaviyo calls at the same time rather than
+  // one after another — each has its own round trip(s), and doing them
+  // sequentially was adding up enough to risk the function's time limit.
+  const [emailsResult, smsResult, perfResult] = await Promise.allSettled([
+    campaigns("email"),
+    campaigns("sms"),
+    emailCampaignPerformance(),
+  ]);
+
+  if (emailsResult.status === "fulfilled") {
+    const emails = emailsResult.value;
     await Promise.all(
       emails.slice(0, 8).map(async (e) => {
         try {
@@ -155,20 +164,20 @@ module.exports = async (req, res) => {
       })
     );
     out.emails = emails;
-  } catch (e) {
-    out.errors.push("email campaigns: " + e.message);
+  } else {
+    out.errors.push("email campaigns: " + emailsResult.reason.message);
   }
 
-  try {
-    out.sms = await campaigns("sms");
-  } catch (e) {
-    out.errors.push("sms campaigns: " + e.message);
+  if (smsResult.status === "fulfilled") {
+    out.sms = smsResult.value;
+  } else {
+    out.errors.push("sms campaigns: " + smsResult.reason.message);
   }
 
-  try {
-    out.emailPerformance = await emailCampaignPerformance();
-  } catch (e) {
-    out.errors.push("email performance: " + e.message);
+  if (perfResult.status === "fulfilled") {
+    out.emailPerformance = perfResult.value;
+  } else {
+    out.errors.push("email performance: " + perfResult.reason.message);
     out.emailPerformance = [];
   }
 
