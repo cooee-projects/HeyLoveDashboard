@@ -67,8 +67,11 @@ module.exports = async (req, res) => {
       const since = new Date(Date.now() - 28 * 864e5).toISOString().slice(0, 10);
       const until = new Date().toISOString().slice(0, 10);
       try {
+        // Meta deprecated page_impressions_unique and page_fan_adds — using
+        // the documented replacement for reach, and dropping new-follower
+        // tracking since Meta removed that metric with no direct alternative.
         const ins = await g(`${pageId}/insights`, {
-          metric: "page_impressions_unique,page_post_engagements,page_fan_adds",
+          metric: "page_total_media_view_unique,page_post_engagements",
           period: "day",
           since,
           until,
@@ -78,9 +81,9 @@ module.exports = async (req, res) => {
           if (!m) return null;
           return m.values.reduce((s, v) => s + (Number(v.value) || 0), 0);
         };
-        out.totalReach = sum("page_impressions_unique");
+        out.totalReach = sum("page_total_media_view_unique");
         out.totalEngagement = sum("page_post_engagements");
-        out.newFollowers = sum("page_fan_adds");
+        out.newFollowers = null; // no longer available — see comment above
         out.growthPeriod = { start: since, end: until };
       } catch (e) {
         out.errors.push("page insights: " + e.message);
