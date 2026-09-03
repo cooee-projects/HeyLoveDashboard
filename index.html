@@ -25,6 +25,42 @@
   h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);display:inline-block}
   .loading{color:var(--muted);padding:20px 0}
   .error{background:#fdecec;border:1px solid #f2c4c4;border-radius:12px;padding:14px 18px;color:#933;font-size:14px}
+  .section-period{font-size:12px;color:var(--muted);margin:-12px 0 16px;font-weight:300}
+  .perf-list{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:8px 22px}
+  .perf-row{display:flex;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #f2ebe5}
+  .perf-row:last-child{border-bottom:none}
+  .perf-row .pname{flex:1;min-width:0;font-size:14px}
+  .perf-row .pname .sub{font-size:11px;color:var(--muted);margin-top:2px;text-transform:capitalize}
+  .perf-cols{display:flex;gap:22px}
+  .perf-col{text-align:right;min-width:52px}
+  .perf-col .v{font-size:14px;font-weight:500}
+  .perf-col .l{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-top:2px}
+
+  .cal-wrap{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px}
+  .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .cal-nav-group{display:flex;align-items:center;gap:10px}
+  .cal-title{font-size:16px;font-weight:500;min-width:150px;text-align:center}
+  .cal-nav{width:28px;height:28px;border-radius:50%;border:1px solid #efe7e1;background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--accent-deep);padding:0;line-height:1}
+  .cal-nav:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .cal-today-btn{font-size:12px;color:var(--accent-deep);background:var(--accent-soft);border:none;border-radius:20px;cursor:pointer;padding:6px 14px;font-family:inherit;font-weight:500}
+  .cal-today-btn:hover{background:var(--accent);color:#fff}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal-dow{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:center;padding-bottom:6px;font-weight:600}
+  .cal-day{aspect-ratio:1;background:#fdf1f4;border:1px solid #f7e0e7;border-radius:8px;padding:6px;overflow:hidden}
+  .cal-day.empty{background:transparent;border-color:transparent}
+  .cal-day .dnum{font-size:11px;color:var(--muted);font-weight:500;display:inline-block}
+  .cal-day.today .dnum{background:var(--accent);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-weight:600}
+  .cal-day.has-event{background:#e9f3ea;border-color:#c9e4cd}
+  .cal-day.has-event .dnum{color:#2f6a3a;font-weight:700}
+  .cal-day .ev{margin-top:4px;font-size:10px;line-height:1.3;color:#2f6a3a;font-weight:600;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  @media (max-width:620px){
+    .cal-day{font-size:10px}
+    .cal-day .ev{display:none}
+  }
+
+  .quick-links{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
+  .quick-links a{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid #efe7e1;border-radius:20px;padding:9px 16px;font-size:13px;font-weight:500;color:var(--accent-deep);text-decoration:none;box-shadow:var(--shadow)}
+  .quick-links a:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
 
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
   .stat{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px}
@@ -45,6 +81,10 @@
   .events.pinky .event{border-bottom-color:#f0d1da}
   .events.pinky .date{color:var(--accent-deep)}
   .events.pinky .tag{background:#fff;color:var(--accent-deep)}
+  .events.mint{background:#e9f3ea}
+  .events.mint .event{border-bottom-color:#d5e8d7}
+  .events.mint .date{color:#4f7c5b}
+  .events.mint .tag{background:#fff;color:#4f7c5b}
 
   .videos{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
   .video{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
@@ -71,8 +111,10 @@
   .epreview.ehtml iframe{width:600px;height:450px;border:0;transform:scale(.42);transform-origin:top left;pointer-events:none}
   .sched{position:absolute;top:10px;right:10px;z-index:2;font-size:11px;font-weight:600;border-radius:20px;padding:4px 10px;background:#fff3d6;color:#8a6d1f}
   .sentb{position:absolute;top:10px;right:10px;z-index:2;font-size:11px;font-weight:600;border-radius:20px;padding:4px 10px;background:#e2f2e6;color:#1e6b40}
+  .draftb{position:absolute;top:10px;right:10px;z-index:2;font-size:11px;font-weight:600;border-radius:20px;padding:4px 10px;background:#efe9e4;color:#8a7d76}
   .phone{position:relative}
   .phone .stag{font-size:11px;font-weight:600;border-radius:20px;padding:3px 9px;background:#fff3d6;color:#8a6d1f;margin-left:6px}
+  .phone .dtag{font-size:11px;font-weight:600;border-radius:20px;padding:3px 9px;background:#efe9e4;color:#8a7d76;margin-left:6px}
   /* full email modal */
   .modal{position:fixed;inset:0;background:rgba(43,35,32,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
   .modal .box{background:#fff;border-radius:16px;width:min(680px,94vw);height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.25)}
@@ -115,13 +157,24 @@ function delta(cur, prev, money){
 const card = (label, value, deltaHtml) =>
   `<div class="stat"><div class="label">${label}</div><div class="value">${value}</div>${deltaHtml || ""}</div>`;
 
+function periodLine(period, label){
+  if (!period || !period.start || !period.end) return "";
+  const range = period.start === period.end ? fmtFull(period.start) : `${fmtFull(period.start)} – ${fmtFull(period.end)}`;
+  return `<div class="section-period">${range} · ${label}</div>`;
+}
+
 // Everything for the current month (sent + scheduled), oldest first;
 // falls back to the 4 most recent if the month is empty.
 function monthView(items){
   const now = new Date(), ym = now.toISOString().slice(0,7);
-  const inMonth = items.filter(x => x.date && (x.date.slice(0,7) === ym || (x.scheduled && new Date(x.date) > now)));
+  const inMonth = items.filter(x => !x.date || x.date.slice(0,7) === ym || (x.scheduled && new Date(x.date) > now));
   const list = inMonth.length ? inMonth : items.slice(0,4);
-  return list.sort((a,b) => (a.date || "") < (b.date || "") ? -1 : 1);
+  return list.sort((a,b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return a.date < b.date ? -1 : 1;
+  });
 }
 
 function openEmail(i){
@@ -141,6 +194,22 @@ function driveEmbed(link){
   if (link) return `<a class="fallback" href="${esc(link)}" target="_blank" rel="noopener"><div class="play">▶</div></a>`;
   return `<div class="fallback"><div class="play">▶</div></div>`;
 }
+
+// HL x MM Content — curated reel list, not Notion-driven. Update this array
+// directly (and re-deploy) whenever the folder's contents change.
+const REELS_HL_X_MM = [
+  { name: "Game On at Hey Love", date: "2026-08-20", link: "https://drive.google.com/file/d/1DoXDqKFqDFhUZS5gKuR75q_59xdQewjz/view" },
+  { name: "OTW to the Fashion Show", date: "2026-08-20", link: "https://drive.google.com/file/d/1x5KAOen7039iSteFpm7eCmt4kMOxT-LM/view" },
+  { name: "Pom Pom Reveal", date: "2026-08-20", link: "https://drive.google.com/file/d/1xa5Fbls-cV9jFLFVBotorHsQI-3iAUCt/view" },
+  { name: "Kenzie Kick Up", date: "2026-08-20", link: "https://drive.google.com/file/d/1VRJPn1btOaznaG57gwZcIfszGcFulkUl/view" },
+  { name: "Kenzie Running", date: "2026-08-20", link: "https://drive.google.com/file/d/1hhWX42B1yc9JKgJHQndX7hgt74CuwQPQ/view" },
+  { name: "Reasons to Shop at Hey Love", date: "2026-08-13", link: "https://drive.google.com/file/d/1L-r9z8Vpz8LSBAWEfQeMKbBrkm7xEmDb/view" },
+  { name: "Take My Wallet", date: "2026-08-13", link: "https://drive.google.com/file/d/17vjoKkeL9KexZj0Uqv6Fy6SudAlyiXP6/view" },
+  { name: "Teghan Styling #2", date: "2026-08-13", link: "https://drive.google.com/file/d/1wmBoEH5sMkg5x6K6Nn-znBFYRbQtIlNX/view" },
+  { name: "Tristan Styling", date: "2026-08-13", link: "https://drive.google.com/file/d/1ztLcIq4fultjqaEIovSa9WckraQc2iA1/view" },
+  { name: "Styling", date: "2026-08-10", link: "https://drive.google.com/file/d/1GqSuSAn7gbrczh9PaGc1IqR3d-JhXoBu/view" },
+  { name: "Back to School (Stories) v4", date: "2026-08-05", link: "https://drive.google.com/file/d/1Id2yAiYaEL2Yj_XBu-OSbRuuv1Tq0vPv/view" },
+];
 
 async function load(){
   const app = document.getElementById("app");
@@ -173,7 +242,36 @@ async function load(){
 
   app.className = "";
   app.innerHTML = `
-  <section><h2><span class="dot"></span>Meta Ads Performance</h2><div class="stats">
+  <section><h2><span class="dot"></span>What's Happening This Week</h2><div class="events">
+    ${d.weeklyNotes && d.weeklyNotes.length ? d.weeklyNotes.map(n => `<div class="event"><div class="what">${esc(n)}</div></div>`).join("") : `<div class="event"><div class="what">Add notes to the Weekly Notes database in Notion, and check "Show on Dashboard" to have them appear here.</div></div>`}
+  </div>
+  ${(d.links && (d.links.drive || d.links.heyOrca)) ? `<div class="quick-links">
+    ${d.links.drive ? `<a href="${esc(d.links.drive)}" target="_blank" rel="noopener">📁 Content Folder</a>` : ""}
+    ${d.links.heyOrca ? `<a href="${esc(d.links.heyOrca)}" target="_blank" rel="noopener">📅 Content Calendar</a>` : ""}
+  </div>` : ""}
+  </section>
+
+  <section><h2><span class="dot"></span>Tasks In Progress</h2><div class="events pinky">
+    ${d.tasks.length ? d.tasks.map(t => `<div class="event"><div class="date">${t.due ? "Due " + fmtFull(t.due) : "—"}</div><div class="what">${esc(t.name)}</div>${t.priority[0] ? `<div class="tag">${esc(t.priority[0])}</div>` : ""}</div>`).join("") : `<div class="event"><div class="what">All caught up 🎉</div></div>`}
+  </div></section>
+
+  <section><h2><span class="dot"></span>FY26 MKT Calendar</h2>
+    <div class="cal-wrap">
+      <div class="cal-header">
+        <div class="cal-nav-group">
+          <button class="cal-nav" id="calPrev" type="button" aria-label="Previous month">‹</button>
+          <div class="cal-title" id="calTitle"></div>
+          <button class="cal-nav" id="calNext" type="button" aria-label="Next month">›</button>
+        </div>
+        <button class="cal-today-btn" id="calToday" type="button">Today</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+  </section>
+
+  <section><h2><span class="dot"></span>Meta Ads Performance</h2>
+    ${periodLine(m.adsPeriod, "Month to date")}
+    <div class="stats">
     ${card("Meta Ad Spend", fmt$(c.adSpend), delta(c.adSpend, p.adSpend))}
     ${card("Meta Ad Revenue", fmt$(c.adRevenue), delta(c.adRevenue, p.adRevenue))}
     ${card("ROAS", c.roas != null ? c.roas + "x" : "—", delta(c.roas, p.roas))}
@@ -181,36 +279,117 @@ async function load(){
     ${card("Clicks", fmtN(c.clicks), delta(c.clicks, p.clicks))}
   </div></section>
 
-  <section><h2><span class="dot"></span>Account Growth</h2><div class="stats">
-    ${card("Total Followers", fmtN(c.totalFollowers), delta(c.totalFollowers, p.totalFollowers))}
+  <section><h2><span class="dot"></span>Campaigns Running</h2>
+    ${periodLine(m.adsPeriod, "Month to date")}
+    <div class="perf-list">
+    ${(m.campaigns && m.campaigns.length) ? m.campaigns.map(cp => `
+      <div class="perf-row">
+        <div class="pname">${esc(cp.name)}<div class="sub">${esc((cp.objective || "").replace(/_/g," ").toLowerCase())}</div></div>
+        <div class="perf-cols">
+          <div class="perf-col"><div class="v">${fmt$(cp.spend)}</div><div class="l">Spend</div></div>
+          <div class="perf-col"><div class="v">${cp.result}</div><div class="l">Results</div></div>
+          <div class="perf-col"><div class="v">${fmt$(cp.revenue)}</div><div class="l">Revenue</div></div>
+        </div>
+      </div>`).join("") : `<div class="perf-row"><div class="pname" style="color:var(--muted)">No active campaigns right now.</div></div>`}
+    </div>
+  </section>
+
+  <section><h2><span class="dot"></span>Account Growth</h2>
+    ${periodLine(m.growthPeriod, "Last 28 days")}
+    <div class="stats">
+    ${card("Total Followers (Live)", fmtN(c.totalFollowers), delta(c.totalFollowers, p.totalFollowers))}
     ${card("New Followers", fmtN(c.newFollowers), delta(c.newFollowers, p.newFollowers))}
     ${card("Total Reach", fmtN(c.totalReach), delta(c.totalReach, p.totalReach))}
     ${card("Total Engagement", fmtN(c.totalEngagement), delta(c.totalEngagement, p.totalEngagement))}
   </div></section>
 
-  <div class="two-col">
-    <section><h2><span class="dot"></span>Upcoming Events</h2><div class="events">
-      ${d.events.length ? d.events.map(e => `<div class="event"><div class="date">${fmtD(e.date)}</div><div class="what">${esc(e.name)}</div>${e.tags[0] ? `<div class="tag">${esc(e.tags[0])}</div>` : ""}</div>`).join("") : `<div class="event"><div class="what">Nothing scheduled — add rows to the FY26 MKT Calendar in Notion.</div></div>`}
-    </div></section>
-    <section><h2><span class="dot"></span>Tasks In Progress</h2><div class="events pinky">
-      ${d.tasks.length ? d.tasks.map(t => `<div class="event"><div class="date">${t.due ? "Due " + fmtFull(t.due) : "—"}</div><div class="what">${esc(t.name)}</div>${t.priority[0] ? `<div class="tag">${esc(t.priority[0])}</div>` : ""}</div>`).join("") : `<div class="event"><div class="what">All caught up 🎉</div></div>`}
-    </div></section>
-  </div>
-
   <section><h2><span class="dot"></span>Social Videos</h2><div class="videos">
     ${d.videos.length ? d.videos.map(v => `<div class="video"><div class="thumb">${v.platform ? `<span class="badge">${esc(v.platform)}</span>` : ""}${driveEmbed(v.link)}</div><div class="vmeta"><div class="t">${esc(v.name)}</div><div class="s">${v.date ? "Posted " + fmtFull(v.date) : ""}${v.views != null ? " · " + fmtN(v.views) + " views" : ""}</div></div></div>`).join("") : `<div class="loading">Add videos to the Social Videos database in Notion.</div>`}
   </div></section>
 
-  <section><h2><span class="dot"></span>Text Messages${kl.sms ? " — This Month" : ""}</h2><div class="phones">
-    ${(kl.sms && kl.sms.length) ? monthView(kl.sms).map(s => `<div class="phone"><div class="from">Hey Love · SMS${s.scheduled ? `<span class="stag">Scheduled</span>` : ""}</div><div class="bubble">${esc(s.body || s.name)}</div><div class="when">${s.date ? (s.scheduled ? "Sends " : "Sent ") + fmtFull(s.date.slice(0,10)) : esc(s.status || "")}</div></div>`).join("")
+  <section><h2><span class="dot"></span>HL x MM Content</h2><div class="videos">
+    ${REELS_HL_X_MM.map(v => `<div class="video"><div class="thumb">${driveEmbed(v.link)}</div><div class="vmeta"><div class="t">${esc(v.name)}</div><div class="s">${v.date ? fmtFull(v.date) : ""}</div></div></div>`).join("")}
+  </div></section>
+
+  <section><h2><span class="dot"></span>Text Messages${kl.sms ? " — Upcoming" : ""}</h2><div class="phones">
+    ${(kl.sms && kl.sms.length) ? monthView(kl.sms).map(s => `<div class="phone"><div class="from">Hey Love · SMS${s.isDraft ? `<span class="dtag">Draft</span>` : (s.scheduled ? `<span class="stag">Scheduled</span>` : "")}</div><div class="bubble">${esc(s.body || s.name)}</div><div class="when">${s.isDraft ? "Draft" : (s.date ? (s.scheduled ? "Sends " : "Sent ") + fmtFull(s.date.slice(0,10)) : esc(s.status || ""))}</div></div>`).join("")
       : d.sms.length ? d.sms.map(s => `<div class="phone"><div class="from">Hey Love · SMS</div><div class="bubble">${esc(s.copy || s.focus)}</div><div class="when">${s.date ? "Sent " + fmtFull(s.date) : esc(s.status)}</div></div>`).join("") : `<div class="loading">Add campaigns to SMS CAMPAIGNS in Notion.</div>`}
   </div></section>
 
-  <section><h2><span class="dot"></span>Email Designs${kl.emails ? " — This Month" : ""}</h2><div class="emails">
-    ${(kl.emails && kl.emails.length) ? monthView(kl.emails).map((e) => `<div class="email"><div class="epreview${e.html ? " ehtml" : ""}" ${e.html ? `onclick="openEmail(${kl.emails.indexOf(e)})" title="Click to preview full email"` : ""}><span class="${e.scheduled ? "sched" : "sentb"}">${e.scheduled ? "Scheduled" : "Sent"}</span>${e.html ? `<iframe sandbox="" loading="lazy" srcdoc="${esc(e.html)}"></iframe>` : `<div class="h">${esc(e.subject || e.name)}</div><div class="b">${esc(e.preview)}</div>`}</div><div class="emeta"><div class="t">${esc(e.name)}</div><div class="s">${e.date ? (e.scheduled ? "Sends " : "Sent ") + fmtFull(e.date.slice(0,10)) : esc(e.status || "")}</div></div></div>`).join("")
+  <section><h2><span class="dot"></span>Email Designs${kl.emails ? " — Upcoming" : ""}</h2><div class="emails">
+    ${(kl.emails && kl.emails.length) ? monthView(kl.emails).map((e) => `<div class="email"><div class="epreview${e.html ? " ehtml" : ""}" ${e.html ? `onclick="openEmail(${kl.emails.indexOf(e)})" title="Click to preview full email"` : ""}><span class="${e.isDraft ? "draftb" : (e.scheduled ? "sched" : "sentb")}">${e.isDraft ? "Draft" : (e.scheduled ? "Scheduled" : "Sent")}</span>${e.html ? `<iframe sandbox="" loading="lazy" srcdoc="${esc(e.html)}"></iframe>` : `<div class="h">${esc(e.subject || e.name)}</div><div class="b">${esc(e.preview)}</div>`}</div><div class="emeta"><div class="t">${esc(e.name)}</div><div class="s">${e.isDraft ? "Draft" : (e.date ? (e.scheduled ? "Sends " : "Sent ") + fmtFull(e.date.slice(0,10)) : esc(e.status || ""))}</div></div></div>`).join("")
       : d.emails.length ? d.emails.map(e => `<div class="email"><div class="epreview">${e.images[0] ? `<img src="${esc(e.images[0])}" alt="">` : `<div class="h">${esc(e.subject || e.focus)}</div><div class="b">${esc(e.preview)}</div>`}</div><div class="emeta"><div class="t">${esc(e.focus)}</div><div class="s">${e.date ? "Sent " + fmtFull(e.date) : esc(e.status)}</div></div></div>`).join("") : `<div class="loading">Add campaigns to EMAIL CAMPAIGNS in Notion.</div>`}
-  </div></section>`;
+  </div></section>
+
+  <section><h2><span class="dot"></span>Email Campaign Performance</h2>
+    <div class="section-period">Last 30 days · Campaigns only, Flows excluded</div>
+    <div class="perf-list">
+    ${(kl.emailPerformance && kl.emailPerformance.length) ? kl.emailPerformance.map(p => `
+      <div class="perf-row">
+        <div class="pname">${esc(p.name)}</div>
+        <div class="perf-cols">
+          <div class="perf-col"><div class="v">${fmtN(p.delivered)}</div><div class="l">Sent</div></div>
+          <div class="perf-col"><div class="v">${p.openRate != null ? Math.round(p.openRate * 100) + "%" : "—"}</div><div class="l">Opens</div></div>
+          <div class="perf-col"><div class="v">${p.clickRate != null ? Math.round(p.clickRate * 100) + "%" : "—"}</div><div class="l">Clicks</div></div>
+          <div class="perf-col"><div class="v">${fmt$(p.revenue)}</div><div class="l">Revenue</div></div>
+        </div>
+      </div>`).join("") : `<div class="perf-row"><div class="pname" style="color:var(--muted)">No email campaigns sent in the last 30 days.</div></div>`}
+    </div>
+  </section>`;
   window.__emails = kl.emails || [];
+  initCalendar(d.events);
+}
+
+const calState = { year: null, month: null, events: [] };
+
+function initCalendar(events){
+  const now = new Date();
+  calState.year = now.getFullYear();
+  calState.month = now.getMonth();
+  calState.events = events || [];
+  document.getElementById("calPrev").onclick = () => navCalendar(-1);
+  document.getElementById("calNext").onclick = () => navCalendar(1);
+  document.getElementById("calToday").onclick = () => {
+    const t = new Date();
+    calState.year = t.getFullYear();
+    calState.month = t.getMonth();
+    drawCalendar();
+  };
+  drawCalendar();
+}
+
+function navCalendar(delta){
+  calState.month += delta;
+  if (calState.month < 0) { calState.month = 11; calState.year -= 1; }
+  if (calState.month > 11) { calState.month = 0; calState.year += 1; }
+  drawCalendar();
+}
+
+function drawCalendar(){
+  const { year, month, events } = calState;
+  document.getElementById("calTitle").textContent = new Date(year, month, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+  const firstDow = new Date(year, month, 1).getDay(); // 0 = Sun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+
+  const byDay = {};
+  for (const e of events) {
+    if (!e.date || e.date.slice(0, 7) !== `${year}-${String(month + 1).padStart(2,"0")}`) continue;
+    (byDay[e.date] = byDay[e.date] || []).push(e.name);
+  }
+
+  const dow = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => `<div class="cal-dow">${d}</div>`).join("");
+  let cells = "";
+  for (let i = 0; i < firstDow; i++) cells += `<div class="cal-day empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const dayEvents = byDay[dateStr];
+    const cls = ["cal-day", dayEvents ? "has-event" : "", dateStr === todayStr ? "today" : ""].filter(Boolean).join(" ");
+    cells += `<div class="${cls}"><div class="dnum">${d}</div>${dayEvents ? dayEvents.map(n => `<div class="ev">${esc(n)}</div>`).join("") : ""}</div>`;
+  }
+  document.getElementById("calGrid").innerHTML = dow + cells;
 }
 load();
 </script>
