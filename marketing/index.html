@@ -134,6 +134,10 @@
   .modal{background:#fff;border-radius:16px;padding:24px;max-width:420px;width:100%}
   .modal .mhead{display:flex;align-items:center;gap:8px;margin-bottom:4px}
   .modal h3{font-size:19px}
+  .modal .title-input{flex:1;min-width:0;font-family:var(--serif);font-weight:600;font-size:19px;color:var(--ink);
+    border:1px solid transparent;border-bottom:1px dashed var(--line);border-radius:7px;padding:4px 6px;background:transparent}
+  .modal .title-input:hover{border-color:var(--line)}
+  .modal .title-input:focus{outline:none;border:1px solid var(--pink-deep);background:#fff}
   .modal .mdate{font-size:12.5px;color:var(--muted);margin-bottom:16px}
   .modal textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;
     min-height:110px;resize:vertical;font-size:14px}
@@ -455,12 +459,12 @@
 
 <div class="overlay" id="overlay">
   <div class="modal">
-    <div class="mhead"><h3 id="modalTitle"></h3></div>
+    <div class="mhead"><span id="modalEmoji" style="font-size:19px"></span><input type="text" id="modalTitleInput" class="title-input" aria-label="Event title"></div>
     <div class="mdate" id="modalDate"></div>
     <textarea id="modalNotes" placeholder="Add notes for this…"></textarea>
     <div class="mrow">
       <button class="cancel" id="modalCancel">Close</button>
-      <button class="go" id="modalSave">Save notes</button>
+      <button class="go" id="modalSave">Save</button>
     </div>
   </div>
 </div>
@@ -684,7 +688,8 @@ function openEventModal(id){
   const ev = events.find(x=>x.id===id);
   if(!ev) return;
   activeEventId = id;
-  document.getElementById('modalTitle').textContent = `${ev.emoji ? ev.emoji+' ' : ''}${ev.name}`;
+  document.getElementById('modalEmoji').textContent = ev.emoji || '';
+  document.getElementById('modalTitleInput').value = ev.name;
   document.getElementById('modalDate').textContent = fmtDate(ev.date);
   document.getElementById('modalNotes').value = ev.notes || '';
   document.getElementById('overlay').classList.add('show');
@@ -694,12 +699,16 @@ document.getElementById('overlay').addEventListener('click', e=>{ if(e.target.id
 document.getElementById('modalSave').onclick = ()=>{
   const ev = events.find(x=>x.id===activeEventId);
   const notes = document.getElementById('modalNotes').value;
+  const newName = document.getElementById('modalTitleInput').value.trim();
   document.getElementById('overlay').classList.remove('show');
   if(!ev) return;
+  const payload = { id: ev.id, notes };
+  if(newName && newName !== ev.name){ payload.name = newName; payload.emoji = ev.emoji ? ev.emoji + ' ' : ''; }
   withPasscode(async (passcode)=>{
     try{
-      await api('/api/calendar', { passcode, id: ev.id, notes });
+      await api('/api/calendar', { passcode, ...payload });
       ev.notes = notes; setPasscode(passcode);
+      if(payload.name){ ev.name = payload.name; renderCalendar(); renderThisWeek(); }
     }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
   });
 };
