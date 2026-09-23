@@ -85,6 +85,11 @@
   .edit-inline{border-radius:5px;transition:background .12s ease}
   .edit-inline:hover{background:var(--cream-2)}
   .edit-inline:focus-visible{outline:2px solid var(--pink-deep);outline-offset:1px}
+  .linkbtn-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+  .linkbtn{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);
+    border-radius:99px;padding:11px 18px;font-weight:600;font-size:14px;color:var(--pink-deep);
+    text-decoration:none;transition:box-shadow .15s ease}
+  .linkbtn:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
   .add-row{display:flex;gap:8px;margin-top:12px}
   .add-row input{flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:14px}
   .add-row button{background:var(--active);color:var(--active-text);border:0;border-radius:9px;padding:0 15px;font-weight:600;font-size:13.5px}
@@ -223,6 +228,7 @@
     <nav class="tabs">
       <button data-tab="planner" class="active">Planner</button>
       <button data-tab="paid">Paid Media</button>
+      <button data-tab="emails">Emails</button>
       <button data-tab="content">Content</button>
     </nav>
   </div>
@@ -266,10 +272,12 @@
           <button id="calNext">›</button>
         </div>
       </div>
+      <div id="calError" class="note-inline" style="display:none;background:#fdecea;color:#a33;border-radius:10px;padding:11px 14px;margin-bottom:14px;font-size:13.5px"></div>
       <div class="legend">
         <span><i style="background:var(--purple)"></i>📸 Shoot / content capture</span>
         <span><i style="background:var(--butter)"></i>📧 Email &amp; 💬 social/text</span>
         <span><i style="background:var(--lightpink)"></i>Everything else</span>
+        <span id="calEventCount" style="margin-left:auto;color:var(--muted)"></span>
       </div>
       <div class="cal-grid" id="calDow"></div>
       <div class="cal-grid" id="calGrid" style="margin-top:6px"></div>
@@ -361,22 +369,55 @@
         <p class="placeholder-note">Not connected yet — needs analytics data from Shopify.</p>
       </div>
     </div>
+  </section>
+
+  <!-- ================= EMAILS ================= -->
+  <section class="panel" id="panel-emails">
+    <div class="datasource"><span class="live"></span> <span id="klaviyoDataSource">Source: Klaviyo · Loading…</span></div>
 
     <div class="card">
-      <div class="card-head"><h2>Email + Paid</h2><span class="notconnected">Needs Klaviyo wiring</span></div>
-      <p class="placeholder-note">A Klaviyo key already exists on this project, but the actual integration (matching flow emails to paid purchases) hasn't been built yet — happy to do that as a follow-up.</p>
+      <div class="card-head"><h2>Email Performance</h2><span class="sub">Sent campaigns · last 30 days</span></div>
+      <div style="overflow-x:auto">
+      <table class="simple">
+        <thead><tr><th>Campaign</th><th>Delivered</th><th>Open rate</th><th>Click rate</th><th>Revenue</th></tr></thead>
+        <tbody id="emailPerfRows"><tr><td colspan="5" class="placeholder-note">Loading…</td></tr></tbody>
+      </table>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head"><h2>Upcoming Emails</h2><span class="sub">Scheduled &amp; drafts</span></div>
+        <ul class="simple-list" id="upcomingEmails"><li><span class="placeholder-note">Loading…</span></li></ul>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Upcoming Texts</h2><span class="sub">SMS · scheduled &amp; drafts</span></div>
+        <ul class="simple-list" id="upcomingSms"><li><span class="placeholder-note">Loading…</span></li></ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Email + Paid</h2><span class="notconnected">Needs Shopify</span></div>
+      <p class="placeholder-note">Everything above is live Klaviyo data. This card — which paid purchases were
+        preceded by an email — needs Shopify order data as the connecting piece, since Klaviyo and Meta
+        don't share a customer identity directly.</p>
     </div>
   </section>
 
   <!-- ================= CONTENT ================= -->
   <section class="panel" id="panel-content">
+    <div class="linkbtn-row">
+      <a class="linkbtn" href="https://app.heyorca.com/sharing?token=Nzc1Yzg3YjQ1MjFkNGUyOWE1NTIzNzk1ZDA3NjM4NmY=" target="_blank" rel="noopener">🗓️ Social Calendar</a>
+      <a class="linkbtn" href="https://drive.google.com/drive/folders/1Ny-8np8Tew8qJS33DwQPqc7D3NGPaPk9?usp=sharing" target="_blank" rel="noopener">📁 September Content Folder</a>
+    </div>
+
     <div class="card">
       <div class="card-head"><h2>September Content</h2>
-        <a href="https://canva.link/ccf3pw3tcteargk" target="_blank" rel="noopener" style="font-size:12.5px;color:var(--pink-deep);font-weight:600">Open in Canva ↗</a>
+        <a href="https://canva.link/mu8ifiphtwsx6tw" target="_blank" rel="noopener" style="font-size:12.5px;color:var(--pink-deep);font-weight:600">Open in Canva ↗</a>
       </div>
       <div style="position:relative;padding-top:56.25%;border-radius:15px;overflow:hidden;background:var(--cream-2)">
         <iframe
-          src="https://canva.link/ccf3pw3tcteargk"
+          src="https://canva.link/mu8ifiphtwsx6tw"
           style="position:absolute;inset:0;width:100%;height:100%;border:0"
           allow="fullscreen"
           allowfullscreen
@@ -460,6 +501,22 @@ function flashSaved(el){
   el._t = setTimeout(()=> el.classList.remove('show'), 1200);
 }
 
+function showError(msg){
+  let toast = document.getElementById('errToast');
+  if(!toast){
+    toast = document.createElement('div');
+    toast.id = 'errToast';
+    toast.style.cssText = 'position:fixed;bottom:22px;left:50%;transform:translateX(-50%);'+
+      'background:#a33;color:#fff;padding:13px 20px;border-radius:10px;font-size:14px;'+
+      'font-weight:600;z-index:200;max-width:90vw;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.25)';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=> toast.style.display='none', 6000);
+}
+
 async function api(path, body){
   const opts = body ? { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) } : {};
   const res = await fetch(path, opts);
@@ -532,12 +589,19 @@ function isoOf(y,m,d){ const mm=String(m+1).padStart(2,'0'), dd=String(d).padSta
 function startOfWeek(d){ const x=new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate()-x.getDay()); return x; }
 
 async function loadEvents(){
+  const errEl = document.getElementById('calError');
+  const countEl = document.getElementById('calEventCount');
   try{
     const data = await api('/api/calendar');
     events = data.events || [];
+    errEl.style.display = 'none';
+    countEl.textContent = `${events.length} event${events.length===1?'':'s'} loaded (all months)`;
   }catch(e){
     console.error('calendar load failed', e);
     events = [];
+    errEl.style.display = 'block';
+    errEl.textContent = 'Could not load the calendar from Notion: ' + e.message + ' — most likely the "FY26 MKT Calendar" page in Notion hasn\'t been shared with the integration yet (Step 1).';
+    countEl.textContent = '';
   }
   renderCalendar();
   renderThisWeek();
@@ -596,14 +660,15 @@ function renderCalendar(){
       const ev = events.find(x=>x.id===id);
       if(!ev || ev.date===iso) return;
       const prevDate = ev.date;
+      const newStart = iso + (ev.rawDate && ev.rawDate.length > 10 ? ev.rawDate.slice(10) : '');
       ev.date = iso; renderCalendar(); renderThisWeek(); // optimistic
       withPasscode(async (passcode)=>{
         try{
-          await api('/api/calendar', { passcode, id, date: iso });
+          await api('/api/calendar', { passcode, id, date: newStart }); ev.rawDate = newStart;
           setPasscode(passcode);
         }catch(err){
           ev.date = prevDate; renderCalendar(); renderThisWeek();
-          console.error(err);
+          console.error(err); showError(err.message || 'Could not reschedule');
         }
       });
     });
@@ -635,7 +700,7 @@ document.getElementById('modalSave').onclick = ()=>{
     try{
       await api('/api/calendar', { passcode, id: ev.id, notes });
       ev.notes = notes; setPasscode(passcode);
-    }catch(err){ console.error(err); }
+    }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
   });
 };
 
@@ -662,11 +727,11 @@ function renderThisWeek(){
     const titleEl = editableText(ev.name, (newText)=>{
       withPasscode(async (passcode)=>{
         try{
-          await api('/api/calendar', { passcode, id: ev.id, name: newText });
+          await api('/api/calendar', { passcode, id: ev.id, name: newText, emoji: ev.emoji ? ev.emoji + ' ' : '' });
           ev.name = newText; setPasscode(passcode);
           renderCalendar(); renderThisWeek();
           flashSaved(document.getElementById('weekSavePill'));
-        }catch(err){ console.error(err); renderThisWeek(); }
+        }catch(err){ console.error(err); showError(err.message || "Could not save"); renderThisWeek(); }
       });
     });
     what.appendChild(titleEl);
@@ -682,7 +747,7 @@ function renderThisWeek(){
           events = events.filter(x=>x.id!==ev.id); setPasscode(passcode);
           renderCalendar(); renderThisWeek();
           flashSaved(document.getElementById('weekSavePill'));
-        }catch(err){ console.error(err); }
+        }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
       });
     });
     li.append(dot, what, rm);
@@ -697,12 +762,12 @@ function addWeekItem(){
   if(!text) return;
   withPasscode(async (passcode)=>{
     try{
-      const res = await api('/api/calendar', { passcode, name: text, date: isoDate(today), category: 'Other' });
+      const res = await api('/api/calendar', { passcode, name: text, date: isoOf(today.getFullYear(), today.getMonth(), today.getDate()) });
       events.push(res.event); setPasscode(passcode);
       input.value = '';
       renderCalendar(); renderThisWeek();
       flashSaved(document.getElementById('weekSavePill'));
-    }catch(err){ console.error(err); }
+    }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
   });
 }
 
@@ -731,17 +796,17 @@ function renderActions(){
           a.done = cb.checked; setPasscode(passcode);
           li.classList.toggle('done', a.done);
           flashSaved(document.getElementById('actionSavePill'));
-        }catch(err){ cb.checked = a.done; console.error(err); }
+        }catch(err){ cb.checked = a.done; console.error(err); showError(err.message || "Could not save"); }
       });
     });
-    const txt = editableText(a.text, (newText)=>{
+    const txt = editableText(a.name, (newText)=>{
       withPasscode(async (passcode)=>{
         try{
           await api('/api/tasks', { passcode, id: a.id, name: newText });
-          a.text = newText; setPasscode(passcode);
+          a.name = newText; setPasscode(passcode);
           renderActions();
           flashSaved(document.getElementById('actionSavePill'));
-        }catch(err){ console.error(err); renderActions(); }
+        }catch(err){ console.error(err); showError(err.message || "Could not save"); renderActions(); }
       });
     }, 'txt');
     const rm = document.createElement('button'); rm.className='rm'; rm.textContent='Remove';
@@ -752,7 +817,7 @@ function renderActions(){
           actions = actions.filter(x=>x.id!==a.id); setPasscode(passcode);
           renderActions();
           flashSaved(document.getElementById('actionSavePill'));
-        }catch(err){ console.error(err); }
+        }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
       });
     });
     li.append(cb, txt, rm);
@@ -772,7 +837,7 @@ function addAction(){
       input.value = '';
       renderActions();
       flashSaved(document.getElementById('actionSavePill'));
-    }catch(err){ console.error(err); }
+    }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
   });
 }
 
@@ -887,7 +952,7 @@ async function renderTopCreatives(){
             await api('/api/creative-notes', { passcode, name: c.name, notes: ta.value });
             setPasscode(passcode);
             flashSaved(document.getElementById('creativeSavePill'));
-          }catch(err){ console.error(err); }
+          }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
         });
       }, 600);
     });
@@ -920,7 +985,7 @@ document.getElementById('updatesAdd').onclick = ()=>{
       ta.value = '';
       await loadUpdates();
       flashSaved(document.getElementById('updatesSavePill'));
-    }catch(err){ console.error(err); }
+    }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
   });
 };
 
@@ -948,14 +1013,47 @@ document.getElementById('feedbackAdd').onclick = ()=>{
       setPasscode(passcode);
       ta.value = '';
       await loadFeedback();
-    }catch(err){ console.error(err); }
+    }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
   });
 };
+
+/* ================= emails: uses the original, proven /api/klaviyo ================= */
+function pct(v){ return (v === null || v === undefined) ? '—' : (Number(v) * 100).toFixed(1) + '%'; }
+function esc(t){ const d = document.createElement('div'); d.textContent = t == null ? '' : String(t); return d.innerHTML; }
+
+async function loadKlaviyoStats(){
+  const src = document.getElementById('klaviyoDataSource');
+  let data;
+  try{
+    data = await api('/api/klaviyo');
+  }catch(e){
+    src.textContent = 'Source: Klaviyo · Could not load — ' + e.message;
+    return;
+  }
+  if(data.configured === false){
+    src.textContent = 'Source: Klaviyo · Not configured (no KLAVIYO_API_KEY)';
+    return;
+  }
+  src.textContent = 'Source: Klaviyo · Refreshed ' + new Date().toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+  if(Array.isArray(data.errors) && data.errors.length) console.warn('Klaviyo partial errors:', data.errors);
+
+  const perf = data.emailPerformance || [];
+  document.getElementById('emailPerfRows').innerHTML = perf.length
+    ? perf.map(c => `<tr><td>${esc(c.name)}</td><td>${c.delivered != null ? Number(c.delivered).toLocaleString() : '—'}</td><td>${pct(c.openRate)}</td><td>${pct(c.clickRate)}</td><td>${c.revenue != null ? money(c.revenue) : '—'}</td></tr>`).join('')
+    : '<tr><td colspan="5" class="placeholder-note">No campaigns sent in the last 30 days.</td></tr>';
+
+  const listItems = (arr, empty) => (arr && arr.length)
+    ? arr.map(m => `<li><span>${esc(m.name)}${m.subject ? `<br><span class="sub" style="font-size:12px">${esc(m.subject)}</span>` : ''}</span><span class="amt">${m.isDraft ? 'Draft' : (m.date ? new Date(m.date).toLocaleDateString(undefined,{month:'short',day:'numeric'}) : 'Scheduled')}</span></li>`).join('')
+    : `<li><span class="placeholder-note">${empty}</span></li>`;
+  document.getElementById('upcomingEmails').innerHTML = listItems(data.emails, 'Nothing scheduled or in draft.');
+  document.getElementById('upcomingSms').innerHTML = listItems(data.sms, 'No texts scheduled or in draft.');
+}
 
 /* ================= init ================= */
 loadEvents();
 loadActions();
 loadMetaStats();
+loadKlaviyoStats();
 loadUpdates();
 loadFeedback();
 </script>

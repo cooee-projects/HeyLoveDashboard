@@ -1,84 +1,88 @@
-// api/dashboard-notes.js — reads and writes the "Hey Love — Dashboard Notes" Notion database.
-// Shared by two sections: Paid Media's "Updates" and Content's "Notes & Feedback",
-// distinguished by the "type" query param / field ("Paid Updates" or "Content Feedback").
-// This is a log (each entry keeps its own timestamp) rather than one overwritable field —
-// a small upgrade from the preview version so update history isn't lost.
-const NOTION_VERSION = '2025-09-03';
-const DATA_SOURCE_ID = '3a0f9220-bc38-4b57-9a9a-e39820a1e892'; // Hey Love — Dashboard Notes
+// api/dashboard-notes.js — Paid Media "Updates" log + Content "Notes & Feedback" log.
+// Database lives under the Hey Love Texas page (covered by NOTION_TOKEN's access).
+const DB_ID = 'd8e1f0d9d34b44429f6c8f6653ed4a8d'; // Hey Love — Dashboard Notes
+const TOKEN = () => process.env.NOTION_TOKEN || process.env.NOTION_TOKEN_TASKS;
 
 async function notion(path, options = {}) {
-  const res = await fetch(`https://api.notion.com/v1${path}`, {
+  const r = await fetch(`https://api.notion.com/v1${path}`, {
     ...options,
     headers: {
-      Authorization: `Bearer ${process.env.NOTION_TOKEN_TASKS}`,
-      'Notion-Version': NOTION_VERSION,
+      Authorization: `Bearer ${TOKEN()}`,
+      'Notion-Version': '2022-06-28',
       'Content-Type': 'application/json',
-      ...(options.headers || {}),
     },
   });
-  const data = await res.json();
-  if (!res.ok) {
-    const err = new Error(data.message || `Notion API error (${res.status})`);
-    err.status = res.status;
+  const j = await r.json();
+  if (!r.ok) {
+    const err = new Error(`Notion ${r.status}: ${j.message || 'error'}`);
+    err.status = r.status;
     throw err;
   }
-  return data;
+  return j;
 }
 
-function rowFromPage(page) {
-  const p = page.properties || {};
-  return {
-    id: page.id,
-    text: (p.Text?.title || []).map((t) => t.plain_text).join('') || '',
-    type: p.Type?.select?.name || '',
-    logged: p.Logged?.created_time || null,
-  };
+async function queryAll(dbId, body) {
+  let results = [];
+  let cursor;
+  do {
+    const j = await notion(`/databases/${dbId}/query`, {
+      method: 'POST',
+      body: JSON.stringify({ page_size: 100, ...body, ...(cursor ? { start_cursor: cursor } : {}) }),
+    });
+    results = results.concat(j.results || []);
+    cursor = j.has_more ? j.next_cursor : null;
+  } while (cursor);
+  return results;
 }
+
+function checkPass(req) {
+  const { passcode } = req.body || {};
+  return !!process.env.DASHBOARD_PASSCODE && passcode === process.env.DASHBOARD_PASSCODE;
+}
+
+
 
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
-  if (!process.env.NOTION_TOKEN_TASKS) {
-    return res.status(500).json({ error: 'NOTION_TOKEN_TASKS is not set' });
-  }
+  if (!TOKEN()) return res.status(500).json({ error: 'NOTION_TOKEN is not set' });
 
   if (req.method === 'GET') {
     const type = req.query?.type;
     try {
-      const body = { sorts: [{ timestamp: 'created_time', direction: 'descending' }], page_size: 50 };
+      const body = { sorts: [{ timestamp: 'created_time', direction: 'descending' }] };
       if (type) body.filter = { property: 'Type', select: { equals: type } };
-      const data = await notion(`/data_sources/${DATA_SOURCE_ID}/query`, { method: 'POST', body: JSON.stringify(body) });
-      return res.status(200).json({ notes: data.results.map(rowFromPage) });
+      const pages = await queryAll(DB_ID, body);
+      return res.status(200).json({
+        notes: pages.slice(0, 50).map((pg) => ({
+          id: pg.id,
+          text: (pg.properties.Text?.title || []).map((t) => t.plain_text).join(''),
+          type: pg.properties.Type?.select?.name || '',
+          logged: pg.created_time,
+        })),
+      });
     } catch (e) {
       return res.status(e.status || 500).json({ error: e.message });
     }
   }
 
   if (req.method === 'POST') {
-    const { passcode, text, type } = req.body || {};
-    if (!process.env.DASHBOARD_PASSCODE || passcode !== process.env.DASHBOARD_PASSCODE) {
-      return res.status(401).json({ error: 'Wrong passcode' });
-    }
+    if (!checkPass(req)) return res.status(401).json({ error: 'Wrong passcode' });
+    const { text, type } = req.body || {};
     if (!text || !type) return res.status(400).json({ error: 'Missing text or type' });
     try {
-      const page = await notion('/pages', {
+      await notion('/pages', {
         method: 'POST',
         body: JSON.stringify({
-          parent: { type: 'data_source_id', data_source_id: DATA_SOURCE_ID },
+          parent: { database_id: DB_ID },
           properties: {
-            Text: { title: [{ text: { content: text } }] },
+            Text: { title: [{ text: { content: text.slice(0, 2000) } }] },
             Type: { select: { name: type } },
           },
         }),
       });
-      return res.status(200).json({ ok: true, note: rowFromPage(page) });
+      return res.status(200).json({ ok: true });
     } catch (e) {
       return res.status(e.status || 500).json({ error: e.message });
     }
   }
-
   return res.status(405).json({ error: 'Method not allowed' });
 };

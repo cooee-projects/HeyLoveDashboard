@@ -1,83 +1,81 @@
-// api/creative-notes.js — reads and writes the "Hey Love — Creative Notes" Notion database.
-// Notes are keyed by creative name; posting a name that already has a row updates it in place.
-const NOTION_VERSION = '2025-09-03';
-const DATA_SOURCE_ID = '8c682404-1545-496b-a364-30fac64f03e5'; // Hey Love — Creative Notes
+// api/creative-notes.js — per-creative notes on the Paid Media tab.
+// Database lives under the Hey Love Texas page, so the original integration's
+// access (NOTION_TOKEN) covers it automatically.
+const DB_ID = 'f8a3939d1a204374b87b6f1a2cc25300'; // Hey Love — Creative Notes
+const TOKEN = () => process.env.NOTION_TOKEN || process.env.NOTION_TOKEN_TASKS;
 
 async function notion(path, options = {}) {
-  const res = await fetch(`https://api.notion.com/v1${path}`, {
+  const r = await fetch(`https://api.notion.com/v1${path}`, {
     ...options,
     headers: {
-      Authorization: `Bearer ${process.env.NOTION_TOKEN_TASKS}`,
-      'Notion-Version': NOTION_VERSION,
+      Authorization: `Bearer ${TOKEN()}`,
+      'Notion-Version': '2022-06-28',
       'Content-Type': 'application/json',
-      ...(options.headers || {}),
     },
   });
-  const data = await res.json();
-  if (!res.ok) {
-    const err = new Error(data.message || `Notion API error (${res.status})`);
-    err.status = res.status;
+  const j = await r.json();
+  if (!r.ok) {
+    const err = new Error(`Notion ${r.status}: ${j.message || 'error'}`);
+    err.status = r.status;
     throw err;
   }
-  return data;
+  return j;
 }
 
-function rowFromPage(page) {
-  const p = page.properties || {};
-  return {
-    id: page.id,
-    name: (p['Creative Name']?.title || []).map((t) => t.plain_text).join('') || '',
-    notes: (p.Notes?.rich_text || []).map((t) => t.plain_text).join('') || '',
-  };
+async function queryAll(dbId, body) {
+  let results = [];
+  let cursor;
+  do {
+    const j = await notion(`/databases/${dbId}/query`, {
+      method: 'POST',
+      body: JSON.stringify({ page_size: 100, ...body, ...(cursor ? { start_cursor: cursor } : {}) }),
+    });
+    results = results.concat(j.results || []);
+    cursor = j.has_more ? j.next_cursor : null;
+  } while (cursor);
+  return results;
 }
+
+function checkPass(req) {
+  const { passcode } = req.body || {};
+  return !!process.env.DASHBOARD_PASSCODE && passcode === process.env.DASHBOARD_PASSCODE;
+}
+
+
 
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-
-  if (!process.env.NOTION_TOKEN_TASKS) {
-    return res.status(500).json({ error: 'NOTION_TOKEN_TASKS is not set' });
-  }
+  if (!TOKEN()) return res.status(500).json({ error: 'NOTION_TOKEN is not set' });
 
   if (req.method === 'GET') {
     try {
-      const data = await notion(`/data_sources/${DATA_SOURCE_ID}/query`, {
-        method: 'POST',
-        body: JSON.stringify({ page_size: 100 }),
+      const pages = await queryAll(DB_ID, {});
+      return res.status(200).json({
+        notes: pages.map((pg) => ({
+          id: pg.id,
+          name: (pg.properties['Creative Name']?.title || []).map((t) => t.plain_text).join(''),
+          notes: (pg.properties.Notes?.rich_text || []).map((t) => t.plain_text).join(''),
+        })),
       });
-      return res.status(200).json({ notes: data.results.map(rowFromPage) });
     } catch (e) {
       return res.status(e.status || 500).json({ error: e.message });
     }
   }
 
   if (req.method === 'POST') {
-    const { passcode, name, notes } = req.body || {};
-    if (!process.env.DASHBOARD_PASSCODE || passcode !== process.env.DASHBOARD_PASSCODE) {
-      return res.status(401).json({ error: 'Wrong passcode' });
-    }
+    if (!checkPass(req)) return res.status(401).json({ error: 'Wrong passcode' });
+    const { name, notes } = req.body || {};
     if (!name) return res.status(400).json({ error: 'Missing name' });
     try {
-      const search = await notion(`/data_sources/${DATA_SOURCE_ID}/query`, {
-        method: 'POST',
-        body: JSON.stringify({ filter: { property: 'Creative Name', title: { equals: name } } }),
-      });
-      if (search.results.length) {
-        await notion(`/pages/${search.results[0].id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ properties: { Notes: { rich_text: [{ text: { content: notes || '' } }] } } }),
-        });
+      const found = await queryAll(DB_ID, { filter: { property: 'Creative Name', title: { equals: name } } });
+      const props = { Notes: { rich_text: [{ text: { content: (notes || '').slice(0, 2000) } }] } };
+      if (found.length) {
+        await notion(`/pages/${found[0].id}`, { method: 'PATCH', body: JSON.stringify({ properties: props }) });
       } else {
         await notion('/pages', {
           method: 'POST',
           body: JSON.stringify({
-            parent: { type: 'data_source_id', data_source_id: DATA_SOURCE_ID },
-            properties: {
-              'Creative Name': { title: [{ text: { content: name } }] },
-              Notes: { rich_text: [{ text: { content: notes || '' } }] },
-            },
+            parent: { database_id: DB_ID },
+            properties: { 'Creative Name': { title: [{ text: { content: name } }] }, ...props },
           }),
         });
       }
@@ -86,6 +84,5 @@ module.exports = async (req, res) => {
       return res.status(e.status || 500).json({ error: e.message });
     }
   }
-
   return res.status(405).json({ error: 'Method not allowed' });
 };
