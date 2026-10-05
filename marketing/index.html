@@ -50,6 +50,12 @@
   nav.tabs button.active{color:var(--ink);border-bottom-color:var(--pink-deep)}
   nav.tabs button:hover{color:var(--ink)}
 
+  nav.subtabs{display:flex;gap:6px;padding:4px 0 14px;flex-wrap:wrap}
+  nav.subtabs[hidden]{display:none}
+  nav.subtabs button{background:var(--cream-2);border:0;border-radius:99px;padding:7px 15px;
+    font-size:13.5px;font-weight:600;color:var(--muted);transition:background .15s ease,color .15s ease}
+  nav.subtabs button:hover{color:var(--ink)}
+  nav.subtabs button.active{background:var(--pink-deep);color:#fff}
   .panel{display:none;padding-top:26px}
   .panel.active{display:block}
 
@@ -265,6 +271,33 @@
   .simple-list li:last-child{border-bottom:0}
   .simple-list .amt{color:var(--muted);white-space:nowrap;font-size:13px}
 
+  /* ---------- social report ---------- */
+  .metric-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;margin-bottom:16px}
+  .metric{background:var(--cream-3);border-radius:12px;padding:11px 13px;min-width:0}
+  .metric .label{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .metric .num{font-family:var(--serif);font-size:21px;font-weight:600;cursor:text;border-radius:6px;margin:0 -4px;padding:0 4px}
+  .metric .num:hover{background:var(--cream-2)}
+  .metric .num.empty{color:var(--muted)}
+  .metric input{width:100%;font-family:var(--serif);font-size:19px;border:1px solid var(--pink-deep);border-radius:6px;padding:2px 6px;background:#fff}
+  .metric .delta{font-size:11px;font-weight:600;margin-top:2px;min-height:15px}
+  .metric .delta.up{color:#3f7a4e}
+  .metric .delta.down{color:#b8524a}
+  .metric .delta.flat{color:var(--muted)}
+  .snap-chip{font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap}
+  .snap-chip.saved{background:var(--active);color:var(--active-text)}
+  .snap-chip.live{background:var(--butter);color:var(--butter-text)}
+  .snap-chip.manual{background:var(--cream-2);color:var(--muted)}
+  .section-label{font-size:12px;font-weight:600;color:var(--muted);margin:0 0 8px}
+  .top-posts{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:16px}
+  .top-post{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;padding:8px;text-decoration:none;color:inherit;min-width:0}
+  .top-post:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .top-post img{width:56px;height:56px;object-fit:cover;border-radius:8px;flex:none;background:var(--cream-2)}
+  .top-post .cap{font-size:12.5px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .top-post .eng{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .social-notes{gap:14px}
+  .social-notes textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 11px;min-height:96px;resize:vertical;font-size:14px;background:var(--cream-3)}
+  .social-card .card-head .handle{font-size:12.5px;color:var(--muted);margin-left:8px;font-family:var(--sans);font-weight:500}
+
   /* ---------- content tab ---------- */
   .swiper-wrap{position:relative}
   .swiper-track{display:flex;overflow:hidden;border-radius:15px}
@@ -305,9 +338,13 @@
     </div>
     <nav class="tabs">
       <button data-tab="planner" class="active">Planner</button>
-      <button data-tab="paid">Paid Media</button>
-      <button data-tab="emails">Emails</button>
+      <button data-tab="reporting">Reporting</button>
       <button data-tab="content">Content</button>
+    </nav>
+    <nav class="subtabs" id="reportingSubtabs" hidden>
+      <button data-sub="paid" class="active">Paid Media</button>
+      <button data-sub="emails">Emails</button>
+      <button data-sub="social">Social</button>
     </nav>
   </div>
 </header>
@@ -502,6 +539,24 @@
     </div>
   </section>
 
+  <!-- ================= SOCIAL (Reporting) ================= -->
+  <section class="panel" id="panel-social">
+    <div class="datasource"><span class="live"></span> <span id="socialDataSource">Source: Meta (Facebook + Instagram) · TikTok entered by hand</span></div>
+    <div class="card">
+      <div class="cal-head" style="margin-bottom:0">
+        <div><h2>Social Report</h2><div class="sub" id="socialStatus">Loading…</div></div>
+        <div class="cal-nav">
+          <button id="socialPrev" aria-label="Previous month">‹</button>
+          <span class="cal-month" id="socialMonthLabel"></span>
+          <button id="socialNext" aria-label="Next month">›</button>
+          <button class="cal-add" id="socialSave">Save numbers</button>
+        </div>
+      </div>
+    </div>
+    <div id="socialCards"></div>
+    <p class="sub">Numbers come live from Meta until they're saved; once saved, they're kept in Notion ("Hey Love — Social Monthly Reports") so past months never change. Click any number to correct it. Months that have ended save automatically when someone with the passcode opens them.</p>
+  </section>
+
   <!-- ================= CONTENT ================= -->
   <section class="panel" id="panel-content">
     <div class="linkbtn-row">
@@ -647,14 +702,31 @@ async function api(path, body){
 }
 
 /* ================= tabs ================= */
+// Top tabs: Planner · Reporting · Content. Reporting holds sub-tabs (Paid Media · Emails · Social).
+const subtabsEl = document.getElementById('reportingSubtabs');
+let reportingSub = 'paid';
+try{ reportingSub = localStorage.getItem('hl-dash-subtab') || 'paid'; }catch{}
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  if(id === 'social') loadSocialReport();
+}
+function showReportingSub(sub){
+  reportingSub = sub;
+  try{ localStorage.setItem('hl-dash-subtab', sub); }catch{}
+  subtabsEl.querySelectorAll('button').forEach(b=> b.classList.toggle('active', b.dataset.sub === sub));
+  showPanel(sub);
+}
 document.querySelectorAll('nav.tabs button').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    subtabsEl.hidden = btn.dataset.tab !== 'reporting';
+    if(btn.dataset.tab === 'reporting') showReportingSub(reportingSub);
+    else showPanel(btn.dataset.tab);
   });
 });
+subtabsEl.querySelectorAll('button').forEach(b=> b.addEventListener('click', ()=> showReportingSub(b.dataset.sub)));
 
 /* ================= shared click-to-edit ================= */
 function editableText(text, onCommit, className){
@@ -1538,6 +1610,261 @@ async function loadShopify(){
   document.getElementById('shopProducts').innerHTML =
     list(data.topProducts, r=> `${r.units} sold · ${money(r.revenue)}`, 'No orders yet this month.');
 }
+
+/* ================= reporting: social (monthly, saved to Notion) ================= */
+const SOCIAL_METRICS = {
+  Facebook: [['followers','Followers'],['newFollowers','New followers'],['reach','Reach'],['views','Views'],
+    ['engagements','Engagements'],['profileViews','Page visits'],['posts','Posts'],['likes','Reactions'],['comments','Comments'],['shares','Shares']],
+  Instagram: [['followers','Followers'],['newFollowers','New follows'],['reach','Reach'],['views','Views'],
+    ['engagements','Interactions'],['likes','Likes'],['comments','Comments'],['shares','Shares'],['saves','Saves'],
+    ['posts','Posts'],['profileViews','Profile visits'],['linkClicks','Link clicks']],
+  TikTok: [['followers','Followers'],['newFollowers','New followers'],['views','Video views'],['reach','Reached audience'],
+    ['profileViews','Profile views'],['likes','Likes'],['comments','Comments'],['shares','Shares'],['posts','Videos posted']],
+};
+const SOCIAL_PLATFORMS = ['Instagram', 'Facebook', 'TikTok'];
+const LIVE_PLATFORMS = ['Facebook', 'Instagram'];
+const thisMonthKey = isoOf(today.getFullYear(), today.getMonth(), 1).slice(0, 7);
+let socialMonth = (()=>{ const d = new Date(today.getFullYear(), today.getMonth() - 1, 1); return isoOf(d.getFullYear(), d.getMonth(), 1).slice(0, 7); })();
+const socialCache = {};   // month -> api response
+const socialPrevLive = {}; // month -> live numbers for comparison when the previous month wasn't saved
+const pendingNoteSaves = new Map();
+
+function monthLabel(m, opts = { month:'long', year:'numeric' }){
+  const [y, mo] = m.split('-').map(Number);
+  return new Date(y, mo - 1, 1).toLocaleDateString(undefined, opts);
+}
+function shiftMonth(m, by){
+  const [y, mo] = m.split('-').map(Number);
+  const d = new Date(y, mo - 1 + by, 1);
+  return isoOf(d.getFullYear(), d.getMonth(), 1).slice(0, 7);
+}
+const fmtNum = n => n === null || n === undefined || n === '' ? '—' : Number(n).toLocaleString();
+
+function socialNumbers(data, platform){
+  const saved = data.saved.month[platform];
+  if(saved && saved.numbersSaved) return { numbers: saved.numbers, saved: true, when: saved.numbersSaved };
+  const live = data.live && data.live[platform];
+  return { numbers: live ? live.numbers : {}, saved: false };
+}
+function prevNumbers(data, platform){
+  const savedPrev = data.saved.prev[platform];
+  if(savedPrev && savedPrev.numbersSaved) return { numbers: savedPrev.numbers, saved: true };
+  const pl = socialPrevLive[data.month];
+  return pl && pl[platform] ? { numbers: pl[platform].numbers, saved: false } : null;
+}
+
+async function loadSocialReport(force){
+  const month = socialMonth;
+  renderSocialHeader();
+  if(socialCache[month] && !force){ renderSocial(); return; }
+  document.getElementById('socialCards').innerHTML = `<div class="card"><p class="placeholder-note">Loading ${monthLabel(month)}…</p></div>`;
+  try{
+    const data = await api('/api/social-report?month=' + month);
+    socialCache[month] = data;
+    if(data.errors && data.errors.length) console.warn('social report partial errors:', data.errors);
+    // For the % change, use last month's saved numbers — or its live numbers if it was never saved.
+    const needPrevLive = LIVE_PLATFORMS.some(pf=> !(data.saved.prev[pf] && data.saved.prev[pf].numbersSaved));
+    if(needPrevLive && !socialPrevLive[month]){
+      api('/api/social-report?month=' + data.prev).then(prev=>{
+        socialPrevLive[month] = prev.live || {};
+        if(socialMonth === month) renderSocial();
+      }).catch(e=> console.error('previous month load failed', e));
+    }
+    if(socialMonth !== month) return;
+    renderSocial();
+    autoSaveSocialIfDone(month);
+  }catch(e){
+    console.error(e);
+    document.getElementById('socialCards').innerHTML = `<div class="card"><p class="placeholder-note">Could not load the social report: ${esc(e.message)}</p></div>`;
+  }
+}
+
+function renderSocialHeader(){
+  document.getElementById('socialMonthLabel').textContent = monthLabel(socialMonth);
+  document.getElementById('socialNext').disabled = socialMonth >= thisMonthKey;
+  document.getElementById('socialNext').style.opacity = socialMonth >= thisMonthKey ? .4 : 1;
+}
+
+function renderSocial(){
+  const data = socialCache[socialMonth];
+  if(!data) return;
+  renderSocialHeader();
+  const isCurrent = socialMonth === thisMonthKey;
+  const liveSaved = LIVE_PLATFORMS.map(pf=> socialNumbers(data, pf));
+  const allSaved = liveSaved.every(x=> x.saved);
+  const savedWhen = liveSaved.find(x=> x.saved)?.when;
+  document.getElementById('socialStatus').textContent = isCurrent
+    ? `${monthLabel(socialMonth, { month:'long' })} so far · live from Meta`
+    : allSaved ? `Numbers saved ${new Date(savedWhen + 'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'})} · kept in Notion`
+    : 'Live from Meta · not saved yet';
+  const saveBtn = document.getElementById('socialSave');
+  saveBtn.textContent = allSaved ? 'Update from Meta' : 'Save numbers';
+  saveBtn.style.display = data.live ? '' : 'none';
+
+  const wrap = document.getElementById('socialCards');
+  wrap.innerHTML = '';
+  SOCIAL_PLATFORMS.forEach(platform=> wrap.appendChild(socialCard(data, platform)));
+}
+
+function socialCard(data, platform){
+  const month = data.month;
+  const live = data.live && data.live[platform];
+  const savedRow = data.saved.month[platform] || {};
+  const { numbers, saved, when } = socialNumbers(data, platform);
+  const prev = prevNumbers(data, platform);
+  const card = document.createElement('div');
+  card.className = 'card social-card';
+
+  const chip = platform === 'TikTok'
+    ? (saved ? `<span class="snap-chip saved">Saved ${new Date(when + 'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'})}</span>` : '<span class="snap-chip manual">Enter from TikTok Studio</span>')
+    : saved ? `<span class="snap-chip saved">Saved ${new Date(when + 'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'})}</span>`
+    : live ? '<span class="snap-chip live">Live from Meta · not saved</span>' : '<span class="snap-chip manual">Meta unavailable — enter by hand</span>';
+  const handle = live ? live.handle : '';
+  card.innerHTML = `<div class="card-head"><h2>${platform}<span class="handle">${esc(handle || '')}</span></h2>${chip}</div>`;
+
+  // metrics
+  const grid = document.createElement('div'); grid.className = 'metric-grid';
+  SOCIAL_METRICS[platform].forEach(([key, label])=>{
+    const val = numbers[key];
+    const tile = document.createElement('div'); tile.className = 'metric';
+    tile.innerHTML = `<div class="label" title="${label}">${label}</div>`;
+    const num = document.createElement('div');
+    num.className = 'num' + (val === null || val === undefined ? ' empty' : '');
+    num.textContent = fmtNum(val); num.tabIndex = 0; num.title = 'Click to edit';
+    const startEdit = ()=>{
+      const input = document.createElement('input');
+      input.type = 'number'; input.min = '0'; input.value = val ?? '';
+      num.replaceWith(input); input.focus(); input.select();
+      let done = false;
+      const commit = (keep)=>{
+        if(done) return; done = true;
+        const v = input.value.trim();
+        const newVal = v === '' ? null : Number(v);
+        if(!keep || newVal === (val ?? null)) { renderSocial(); return; }
+        saveSocialNumbers(month, platform, { ...numbers, [key]: newVal }, platform === 'TikTok' ? undefined : (live ? live.topPosts : undefined));
+      };
+      input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); commit(true); } else if(e.key==='Escape'){ e.preventDefault(); commit(false); } });
+      input.addEventListener('blur', ()=> commit(true));
+    };
+    num.addEventListener('click', startEdit);
+    num.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); startEdit(); } });
+    tile.appendChild(num);
+    const delta = document.createElement('div'); delta.className = 'delta';
+    // Meta only reports today's follower count, so a follower change needs last month's saved snapshot.
+    const pv = prev && (key !== 'followers' || prev.saved) ? prev.numbers[key] : null;
+    if(val !== null && val !== undefined && pv !== null && pv !== undefined){
+      const short = monthLabel(data.prev, { month:'short' });
+      if(key === 'followers'){
+        const d = val - pv;
+        delta.textContent = `${d >= 0 ? '+' : '−'}${Math.abs(d).toLocaleString()} vs ${short}`;
+        delta.classList.add(d > 0 ? 'up' : d < 0 ? 'down' : 'flat');
+      } else if(pv > 0){
+        const pct = (val - pv) / pv * 100;
+        delta.textContent = `${pct >= 0 ? '↑' : '↓'} ${Math.abs(pct).toFixed(0)}% vs ${short}`;
+        delta.classList.add(Math.abs(pct) < 0.5 ? 'flat' : pct > 0 ? 'up' : 'down');
+      }
+    }
+    tile.appendChild(delta);
+    grid.appendChild(tile);
+  });
+  card.appendChild(grid);
+
+  // top posts (live if we have them, otherwise what was saved)
+  const posts = (live && live.topPosts && live.topPosts.length) ? live.topPosts : (savedRow.topPosts || []);
+  if(posts.length){
+    const lbl = document.createElement('div'); lbl.className = 'section-label'; lbl.textContent = 'Top posts';
+    const tp = document.createElement('div'); tp.className = 'top-posts';
+    posts.forEach(pst=>{
+      const a = document.createElement('a'); a.className = 'top-post'; a.href = pst.url || '#'; a.target = '_blank'; a.rel = 'noopener';
+      a.innerHTML = `${pst.image ? `<img src="${esc(pst.image)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : ''}
+        <div style="min-width:0"><div class="cap">${esc(pst.caption || '(no caption)')}</div>
+        <div class="eng">♥ ${fmtNum(pst.likes)} · 💬 ${fmtNum(pst.comments)}${pst.shares ? ' · ↗ ' + fmtNum(pst.shares) : ''} · ${pst.date ? new Date(pst.date).toLocaleDateString(undefined,{month:'short',day:'numeric'}) : ''}</div></div>`;
+      tp.appendChild(a);
+    });
+    card.append(lbl, tp);
+  }
+
+  // notes
+  const notes = document.createElement('div'); notes.className = 'grid2 social-notes';
+  [['worked', 'What worked', 'What performed well this month and why…'], ['next', "What we're doing next", 'Plans, tests and changes for next month…']].forEach(([field, label, ph])=>{
+    const col = document.createElement('div');
+    col.innerHTML = `<div class="card-head" style="margin-bottom:6px"><span class="section-label" style="margin:0">${label}</span><span class="savepill">Saved</span></div>`;
+    const ta = document.createElement('textarea'); ta.placeholder = ph; ta.value = savedRow[field] || '';
+    const pill = col.querySelector('.savepill');
+    ta.addEventListener('input', ()=> queueSocialNote(month, platform, field, ta.value, pill));
+    col.appendChild(ta);
+    notes.appendChild(col);
+  });
+  card.appendChild(notes);
+  return card;
+}
+
+// Notes save as you type; the month/platform are captured now so switching months can't misfile them.
+function queueSocialNote(month, platform, field, value, pill){
+  const key = `${month}|${platform}|${field}`;
+  const data = socialCache[month];
+  if(data){ data.saved.month[platform] = { ...(data.saved.month[platform] || { numbers:{}, topPosts:[] }), [field]: value }; }
+  const existing = pendingNoteSaves.get(key);
+  if(existing) clearTimeout(existing.timer);
+  const run = ()=>{
+    pendingNoteSaves.delete(key);
+    withPasscode(async (passcode)=>{
+      try{
+        await api('/api/social-report', { passcode, month, platform, [field]: value });
+        setPasscode(passcode); flashSaved(pill);
+      }catch(err){ console.error(err); showError(err.message || 'Could not save note'); }
+    });
+  };
+  pendingNoteSaves.set(key, { timer: setTimeout(run, 800), run });
+}
+function flushSocialNotes(){ [...pendingNoteSaves.values()].forEach(p=>{ clearTimeout(p.timer); p.run(); }); }
+
+async function saveSocialNumbers(month, platform, numbers, topPosts){
+  withPasscode(async (passcode)=>{
+    try{
+      const res = await api('/api/social-report', { passcode, month, platform, numbers, ...(topPosts ? { topPosts } : {}) });
+      setPasscode(passcode);
+      const data = socialCache[month];
+      if(data){ data.saved.month[platform] = res.row; if(socialMonth === month) renderSocial(); }
+    }catch(err){ console.error(err); showError(err.message || 'Could not save numbers'); if(socialMonth === month) renderSocial(); }
+  });
+}
+
+// Save the Meta numbers (and top posts) for every platform that has live data.
+function saveAllLive(month, passcode){
+  const data = socialCache[month];
+  if(!data || !data.live) return Promise.resolve();
+  return Promise.all(LIVE_PLATFORMS.filter(pf=> data.live[pf]).map(async pf=>{
+    const res = await api('/api/social-report', { passcode, month, platform: pf, numbers: data.live[pf].numbers, topPosts: data.live[pf].topPosts || [] });
+    data.saved.month[pf] = res.row;
+  }));
+}
+document.getElementById('socialSave').onclick = ()=>{
+  const month = socialMonth;
+  const data = socialCache[month];
+  if(!data) return;
+  const already = LIVE_PLATFORMS.some(pf=> data.saved.month[pf] && data.saved.month[pf].numbersSaved);
+  if(already && !confirm(`Replace the saved Facebook and Instagram numbers for ${monthLabel(month)} with today's numbers from Meta?`)) return;
+  withPasscode(async (passcode)=>{
+    const btn = document.getElementById('socialSave');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    try{ await saveAllLive(month, passcode); setPasscode(passcode); }
+    catch(err){ console.error(err); showError(err.message || 'Could not save'); }
+    finally{ btn.disabled = false; if(socialMonth === month) renderSocial(); }
+  });
+};
+// Once a month is over, keep its numbers: save automatically if this browser already has the passcode.
+function autoSaveSocialIfDone(month){
+  const data = socialCache[month];
+  const pass = getPasscode();
+  if(!data || !data.live || !pass || month >= thisMonthKey) return;
+  const unsaved = LIVE_PLATFORMS.some(pf=> data.live[pf] && !(data.saved.month[pf] && data.saved.month[pf].numbersSaved));
+  if(!unsaved) return;
+  saveAllLive(month, pass).then(()=>{ if(socialMonth === month) renderSocial(); })
+    .catch(e=> console.error('auto-save social failed', e));
+}
+document.getElementById('socialPrev').onclick = ()=>{ flushSocialNotes(); socialMonth = shiftMonth(socialMonth, -1); loadSocialReport(); };
+document.getElementById('socialNext').onclick = ()=>{ if(socialMonth >= thisMonthKey) return; flushSocialNotes(); socialMonth = shiftMonth(socialMonth, 1); loadSocialReport(); };
 
 /* ================= init ================= */
 loadEvents();
