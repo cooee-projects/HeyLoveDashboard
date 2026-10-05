@@ -67,7 +67,9 @@ module.exports = async (req, res) => {
     if (!name) return res.status(400).json({ error: 'Missing name' });
     try {
       const found = await queryAll(DB_ID, { filter: { property: 'Creative Name', title: { equals: name } } });
-      const props = { Notes: { rich_text: [{ text: { content: (notes || '').slice(0, 2000) } }] } };
+      // Notion caps each rich_text piece at 2000 chars (and 100 pieces), so split longer notes.
+      const chunks = (notes || '').match(/[\s\S]{1,2000}/g) || [''];
+      const props = { Notes: { rich_text: chunks.slice(0, 100).map((c) => ({ text: { content: c } })) } };
       if (found.length) {
         await notion(`/pages/${found[0].id}`, { method: 'PATCH', body: JSON.stringify({ properties: props }) });
       } else {

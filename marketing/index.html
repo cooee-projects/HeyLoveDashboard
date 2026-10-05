@@ -369,6 +369,11 @@
       <div class="cal-grid" id="calGrid" style="margin-top:6px"></div>
       <p class="sub" style="margin-top:12px">Drag a card to reschedule it. Click a card to open its notes and images. Click an empty spot on a day to add a new item.</p>
     </div>
+
+    <div class="card creative-notes">
+      <div class="card-head"><h2>Calendar Notes</h2><span class="savepill" id="calendarNotesSavePill">Saved</span></div>
+      <textarea id="calendarNotes" placeholder="Planning notes, ideas, reminders for the calendar…" style="min-height:120px"></textarea>
+    </div>
   </section>
 
   <!-- ================= PAID MEDIA ================= -->
@@ -1339,36 +1344,46 @@ function renderTopCreatives(){
     rankList.appendChild(li);
   });
 }
-async function loadCreativeNotes(){
-  const ta = document.getElementById('creativeNotes');
+const CALENDAR_NOTES_KEY = 'Mktg Calendar — Notes';       // same db, its own row
+
+// Free-text notes boxes that save themselves as you type (one Notion row each).
+async function loadNotesBoxes(){
+  const creativeTa = document.getElementById('creativeNotes');
+  const calendarTa = document.getElementById('calendarNotes');
   try{
     const res = await api('/api/creative-notes');
     const all = res.notes || [];
     const row = all.find(n=> n.name === CREATIVE_NOTES_KEY);
-    if(document.activeElement === ta) return;
-    if(row) ta.value = row.notes || '';
-    else {
-      // First run: carry over the old per-creative notes so nothing written earlier is lost.
-      ta.value = all.filter(n=> n.notes && n.notes.trim()).map(n=> `${n.name}: ${n.notes.trim()}`).join('\n\n');
+    if(document.activeElement !== creativeTa){
+      if(row) creativeTa.value = row.notes || '';
+      else {
+        // First run: carry over the old per-creative notes so nothing written earlier is lost.
+        creativeTa.value = all.filter(n=> n.notes && n.notes.trim() && n.name !== CALENDAR_NOTES_KEY)
+          .map(n=> `${n.name}: ${n.notes.trim()}`).join('\n\n');
+      }
     }
-  }catch(e){ console.error('creative-notes load failed', e); }
+    const cal = all.find(n=> n.name === CALENDAR_NOTES_KEY);
+    if(cal && document.activeElement !== calendarTa) calendarTa.value = cal.notes || '';
+  }catch(e){ console.error('notes load failed', e); }
 }
-(function(){
-  const ta = document.getElementById('creativeNotes');
+function autosaveNotes(textareaId, pillId, key){
+  const ta = document.getElementById(textareaId);
   let t;
   ta.addEventListener('input', ()=>{
     clearTimeout(t);
     t = setTimeout(()=>{
       withPasscode(async (passcode)=>{
         try{
-          await api('/api/creative-notes', { passcode, name: CREATIVE_NOTES_KEY, notes: ta.value });
+          await api('/api/creative-notes', { passcode, name: key, notes: ta.value });
           setPasscode(passcode);
-          flashSaved(document.getElementById('creativeSavePill'));
+          flashSaved(document.getElementById(pillId));
         }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
       });
     }, 700);
   });
-})();
+}
+autosaveNotes('creativeNotes', 'creativeSavePill', CREATIVE_NOTES_KEY);
+autosaveNotes('calendarNotes', 'calendarNotesSavePill', CALENDAR_NOTES_KEY);
 
 /* ================= paid media: updates log ================= */
 async function loadUpdates(){
@@ -1504,7 +1519,7 @@ async function loadShopify(){
 loadEvents();
 loadActions();
 loadMetaStats();
-loadCreativeNotes();
+loadNotesBoxes();
 loadShopify();
 loadKlaviyoStats();
 loadUpdates();
