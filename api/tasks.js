@@ -50,6 +50,7 @@ function rowFromPage(page) {
     name: (p.Name?.title || []).map((t) => t.plain_text).join('') || '(untitled)',
     done: !!p.Done?.checkbox,
     dueDate: p['Due Date']?.date?.start || null,
+    status: p.Status?.select?.name || null,
   };
 }
 
@@ -67,15 +68,26 @@ module.exports = async (req, res) => {
 
   if (req.method === 'POST') {
     if (!checkPass(req)) return res.status(401).json({ error: 'Wrong passcode' });
-    const { id, done, name, delete: del } = req.body || {};
+    const { id, done, name, dueDate, status, delete: del } = req.body || {};
+    // dueDate: 'YYYY-MM-DD' to set, null to clear. status: one of the Status select options.
+    // Status "Done" and the Done checkbox are kept in sync.
+    const extra = {};
+    if (dueDate !== undefined) extra['Due Date'] = { date: dueDate ? { start: dueDate } : null };
+    if (typeof status === 'string') {
+      extra.Status = { select: status ? { name: status } : null };
+      extra.Done = { checkbox: status === 'Done' };
+    }
     try {
       if (id && del) {
         await notion(`/pages/${id}`, { method: 'PATCH', body: JSON.stringify({ archived: true }) });
         return res.status(200).json({ ok: true });
       }
       if (id) {
-        const properties = {};
-        if (typeof done === 'boolean') properties.Done = { checkbox: done };
+        const properties = { ...extra };
+        if (typeof done === 'boolean') {
+          properties.Done = { checkbox: done };
+          properties.Status = { select: { name: done ? 'Done' : 'Not Started' } };
+        }
         if (name) properties.Name = { title: [{ text: { content: name } }] };
         await notion(`/pages/${id}`, { method: 'PATCH', body: JSON.stringify({ properties }) });
         return res.status(200).json({ ok: true });
@@ -85,7 +97,11 @@ module.exports = async (req, res) => {
           method: 'POST',
           body: JSON.stringify({
             parent: { database_id: DB_ID },
-            properties: { Name: { title: [{ text: { content: name } }] } },
+            properties: {
+              Name: { title: [{ text: { content: name } }] },
+              Status: { select: { name: 'Not Started' } },
+              ...extra,
+            },
           }),
         });
         return res.status(200).json({ ok: true, task: rowFromPage(page) });

@@ -58,6 +58,7 @@
   .card h2{font-size:19px}
   .card .sub{font-size:12.5px;color:var(--muted);margin-top:2px}
   .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .card-head h2{white-space:nowrap}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
   @media (max-width:760px){ .grid2{grid-template-columns:1fr} .shell{padding:0 16px 60px} }
 
@@ -94,6 +95,41 @@
   .add-row input{flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:14px}
   .add-row button{background:var(--active);color:var(--active-text);border:0;border-radius:9px;padding:0 15px;font-weight:600;font-size:13.5px}
   .add-row button:hover{background:var(--active-dark)}
+  .add-row input[type=date]{flex:none;width:auto;color:var(--muted);font-size:13px;padding:8px 9px}
+  .grid2 > .card{min-width:0}
+  @media (max-width:760px){
+    .add-row{flex-wrap:wrap}
+    .add-row input[type=text]{flex:1 1 100%}
+    .add-row input[type=date]{flex:1 1 auto}
+    .add-row button{padding:9px 15px}
+  }
+
+  /* week range nav + inline date pickers */
+  .week-nav{display:flex;align-items:center;gap:6px;margin-left:auto;margin-right:8px}
+  .week-nav button{background:var(--cream-2);border:0;width:26px;height:26px;border-radius:7px;font-size:13px;line-height:1}
+  .week-nav button:hover{background:var(--pink)}
+  .week-nav .range{font-size:12.5px;color:var(--muted);font-weight:600;min-width:96px;text-align:center;
+    background:none;border:0;padding:0;width:auto;height:auto}
+  .week-nav .range:hover{background:none;color:var(--ink)}
+  .date-inline{border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted);
+    font-size:11.5px;padding:1px 4px;margin-left:-4px;font-family:var(--sans);cursor:pointer}
+  .date-inline:hover{background:var(--cream-2)}
+  .date-inline:focus{outline:none;border-color:var(--pink-deep);background:#fff}
+
+  /* action item meta: due date + status */
+  .action-item .abody{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .action-meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;font-size:11.5px;color:var(--muted)}
+  .action-meta .due-label{font-weight:600}
+  .action-meta .due-wrap.overdue .due-label,.action-meta .due-wrap.overdue .date-inline{color:#b8524a}
+  .status-select{appearance:none;-webkit-appearance:none;border:0;border-radius:99px;padding:3px 22px 3px 10px;
+    font-size:10.5px;font-weight:600;font-family:var(--sans);cursor:pointer;
+    background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);
+    background-position:calc(100% - 11px) 52%,calc(100% - 7px) 52%;background-size:4px 4px;background-repeat:no-repeat}
+  .status-select:focus-visible{outline:2px solid var(--pink-deep);outline-offset:1px}
+  .status-select.s-not-started{background-color:var(--cream-2);color:var(--muted)}
+  .status-select.s-in-progress{background-color:var(--purple);color:var(--purple-text)}
+  .status-select.s-waiting{background-color:var(--butter);color:var(--butter-text)}
+  .status-select.s-done{background-color:var(--active);color:var(--active-text)}
 
   /* ---------- calendar ---------- */
   .cal-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px}
@@ -105,14 +141,20 @@
   .legend span{display:inline-flex;align-items:center;gap:5px}
   .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
 
-  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
   .cal-dow{font-size:11px;font-weight:600;color:var(--muted);text-align:center;padding-bottom:4px}
   .cal-day{background:var(--cream-3);border-radius:11px;min-height:96px;padding:7px 6px;
     display:flex;flex-direction:column;gap:4px;border:1px solid transparent}
   .cal-day.outside{opacity:.35}
   .cal-day.today{border-color:var(--pink-deep)}
   .cal-day.dragover{border-color:var(--pink-deep);background:var(--pink)}
-  .cal-daynum{font-size:11.5px;color:var(--muted);font-weight:600}
+  .cal-daynum{font-size:11.5px;color:var(--muted);font-weight:600;display:flex;justify-content:space-between;align-items:center}
+  .cal-day{cursor:pointer}
+  .cal-day .cal-plus{opacity:0;font-size:13px;color:var(--pink-deep);transition:opacity .12s ease}
+  .cal-day:hover .cal-plus{opacity:1}
+  .chip .pic{opacity:.7;margin-left:3px}
+  .cal-nav .cal-add{background:var(--active);color:var(--active-text);border:0;border-radius:9px;padding:0 13px;width:auto;height:30px;font-weight:600;font-size:13px;margin-left:6px;white-space:nowrap}
+  .cal-nav .cal-add:hover{background:var(--active-dark)}
   .cal-day.today .cal-daynum{color:var(--pink-deep)}
   .chip{font-size:11px;font-weight:600;border-radius:7px;padding:3px 7px;line-height:1.35;
     cursor:grab;border:0;text-align:left;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -131,7 +173,8 @@
   .overlay{position:fixed;inset:0;background:rgba(43,31,28,.4);display:none;
     align-items:center;justify-content:center;padding:20px;z-index:50}
   .overlay.show{display:flex}
-  .modal{background:#fff;border-radius:16px;padding:24px;max-width:420px;width:100%}
+  #passOverlay{z-index:60}
+  .modal{background:#fff;border-radius:16px;padding:24px;max-width:460px;width:100%;max-height:calc(100vh - 40px);overflow-y:auto}
   .modal .mhead{display:flex;align-items:center;gap:8px;margin-bottom:4px}
   .modal h3{font-size:19px}
   .modal .title-input{flex:1;min-width:0;font-family:var(--serif);font-weight:600;font-size:19px;color:var(--ink);
@@ -145,6 +188,23 @@
   .modal .mrow button{border:0;border-radius:9px;padding:9px 16px;font-weight:600;font-size:13.5px}
   .modal .cancel{background:none;color:var(--muted)}
   .modal .go{background:var(--pink-deep);color:#fff}
+  .modal .go:disabled{opacity:.6;cursor:default}
+  .modal .mdate-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .modal .mdate-row .date-inline{font-size:12.5px}
+  .modal .type-select{border:1px solid var(--line);border-radius:7px;background:#fff;font-size:12.5px;color:var(--ink);padding:3px 6px}
+  .modal .mimgs{margin-top:14px}
+  .modal .mimgs-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .modal .mimgs-head .lbl{font-size:12px;font-weight:600;color:var(--muted)}
+  .modal .addimg{background:var(--cream-2);color:var(--pink-text);border:0;border-radius:8px;padding:6px 11px;font-size:12.5px;font-weight:600}
+  .modal .addimg:hover{background:var(--pink)}
+  .img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+  .img-grid .thumb{position:relative;aspect-ratio:1;border-radius:9px;overflow:hidden;background:var(--cream-3);border:1px solid var(--line)}
+  .img-grid .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .img-grid .thumb a{display:block;width:100%;height:100%}
+  .img-grid .thumb .x{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:0;
+    background:rgba(255,255,255,.92);color:var(--ink);font-size:12px;line-height:1;padding:0}
+  .img-grid .thumb.pending{opacity:.55}
+  .img-empty{font-size:12.5px;color:var(--muted)}
 
   /* ---------- paid media ---------- */
   .datasource{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin-bottom:18px}
@@ -184,6 +244,18 @@
   .rank-card textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 10px;
     font-size:13px;min-height:56px;resize:vertical;background:var(--cream-3)}
   .rank-card .notelabel{font-size:11px;color:var(--muted);margin:8px 0 4px}
+  ol.creative-list{list-style:none;margin:0;padding:0;counter-reset:rank}
+  ol.creative-list li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);counter-increment:rank}
+  ol.creative-list li:last-child{border-bottom:0}
+  ol.creative-list li::before{content:counter(rank);width:24px;height:24px;flex:none;border-radius:50%;
+    background:var(--cream-2);color:var(--pink-text);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  ol.creative-list .cl-name{flex:1;min-width:0;font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  ol.creative-list .cl-meta{font-size:12px;color:var(--muted);white-space:nowrap}
+  ol.creative-list .cl-roas{font-family:var(--serif);font-weight:600;font-size:15px;color:var(--pink-deep);white-space:nowrap;min-width:84px;text-align:right}
+  .creative-notes textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;
+    font-size:14px;min-height:96px;resize:vertical;background:var(--cream-3)}
+  .creative-notes .notelabel{font-size:12px;font-weight:600;color:var(--muted);margin:16px 0 6px}
+  @media (max-width:760px){ ol.creative-list .cl-meta{display:none} }
 
   .simple-list{list-style:none;margin:0;padding:0}
   .simple-list li{display:flex;justify-content:space-between;gap:10px;padding:9px 0;
@@ -227,7 +299,7 @@
         <span class="wordmark">Hey Love</span>
         <span class="sub">Marketing Live Dashboard</span>
       </div>
-      <span class="preview-badge">Updated · Sep 22, 2026</span>
+      <span class="preview-badge">Updated · Oct 5, 2026</span>
     </div>
     <nav class="tabs">
       <button data-tab="planner" class="active">Planner</button>
@@ -245,12 +317,18 @@
     <div class="grid2">
       <div class="card">
         <div class="card-head">
-          <h2>This Week</h2>
+          <h2 id="weekTitle">This Week</h2>
+          <div class="week-nav">
+            <button id="weekPrev" aria-label="Previous week">‹</button>
+            <button class="range" id="weekRange" title="Back to this week"></button>
+            <button id="weekNext" aria-label="Next week">›</button>
+          </div>
           <span class="savepill" id="weekSavePill">Saved</span>
         </div>
         <ul class="plain" id="thisWeekList"></ul>
         <div class="add-row">
           <input type="text" id="weekInput" placeholder="Add something to this week…">
+          <input type="date" id="weekDate" aria-label="Date">
           <button id="weekAdd">Add</button>
         </div>
       </div>
@@ -262,6 +340,7 @@
         <ul class="plain" id="actionList"></ul>
         <div class="add-row">
           <input type="text" id="actionInput" placeholder="Add a task…">
+          <input type="date" id="actionDue" aria-label="Due date" title="Due date">
           <button id="actionAdd">Add</button>
         </div>
       </div>
@@ -274,6 +353,7 @@
           <button id="calPrev">‹</button>
           <span class="cal-month" id="calMonthLabel"></span>
           <button id="calNext">›</button>
+          <button class="cal-add" id="calAdd">+ Add item</button>
         </div>
       </div>
       <div id="calError" class="note-inline" style="display:none;background:#fdecea;color:#a33;border-radius:10px;padding:11px 14px;margin-bottom:14px;font-size:13.5px"></div>
@@ -285,7 +365,7 @@
       </div>
       <div class="cal-grid" id="calDow"></div>
       <div class="cal-grid" id="calGrid" style="margin-top:6px"></div>
-      <p class="sub" style="margin-top:12px">Drag a card to reschedule it. Click a card to open its notes.</p>
+      <p class="sub" style="margin-top:12px">Drag a card to reschedule it. Click a card to open its notes and images. Click an empty spot on a day to add a new item.</p>
     </div>
   </section>
 
@@ -320,8 +400,8 @@
     </div>
 
     <div class="card">
-      <div class="card-head"><h2>New vs. Returning Customers</h2><span class="notconnected">Needs Shopify</span></div>
-      <p class="placeholder-note">Not connected yet — this needs a Shopify Admin API token to attribute paid purchases to new vs. returning customers.</p>
+      <div class="card-head"><h2>New vs. Returning Customers</h2><span class="notconnected" data-shopify-badge>Needs Shopify</span></div>
+      <div id="shopCustomers"><p class="placeholder-note">Not connected yet — this needs a Shopify Admin API token to split this month's orders into new vs. returning customers.</p></div>
     </div>
 
     <div class="card">
@@ -348,25 +428,29 @@
     </div>
 
     <div class="card">
-      <div class="card-head"><h2>Top Performing Creatives</h2><span class="savepill" id="creativeSavePill">Saved</span></div>
-      <div class="rank-list" id="rankList"></div>
-    </div>
-
-    <div class="grid2">
-      <div class="card">
-        <div class="card-head"><h2>Category Breakdown</h2><span class="notconnected">Needs Shopify</span></div>
-        <p class="placeholder-note">Not connected yet — needs product category data from Shopify.</p>
-      </div>
-      <div class="card">
-        <div class="card-head"><h2>Promo Code Performance</h2><span class="notconnected">Needs Shopify</span></div>
-        <p class="placeholder-note">Not connected yet — needs discount code data from Shopify.</p>
+      <div class="card-head"><h2>Top Performing Creatives</h2><span class="sub">This month · by ROAS</span></div>
+      <ol class="creative-list" id="rankList"></ol>
+      <div class="creative-notes">
+        <div class="card-head" style="margin:16px 0 6px"><span class="notelabel" style="margin:0">Our notes</span><span class="savepill" id="creativeSavePill">Saved</span></div>
+        <textarea id="creativeNotes" placeholder="What's working, what to test next…"></textarea>
       </div>
     </div>
 
     <div class="grid2">
       <div class="card">
-        <div class="card-head"><h2>Top Purchased Products</h2><span class="notconnected">Needs Shopify</span></div>
-        <p class="placeholder-note">Not connected yet — needs order data from Shopify.</p>
+        <div class="card-head"><h2>Category Breakdown</h2><span class="notconnected" data-shopify-badge>Needs Shopify</span></div>
+        <div id="shopCategories"><p class="placeholder-note">Not connected yet — needs product category data from Shopify.</p></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Promo Code Performance</h2><span class="notconnected" data-shopify-badge>Needs Shopify</span></div>
+        <div id="shopPromos"><p class="placeholder-note">Not connected yet — needs discount code data from Shopify.</p></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head"><h2>Top Purchased Products</h2><span class="notconnected" data-shopify-badge>Needs Shopify</span></div>
+        <div id="shopProducts"><p class="placeholder-note">Not connected yet — needs order data from Shopify.</p></div>
       </div>
       <div class="card">
         <div class="card-head"><h2>Top Site Pages / Conversions</h2><span class="notconnected">Needs Shopify</span></div>
@@ -381,6 +465,9 @@
 
     <div class="card">
       <div class="card-head"><h2>Email Performance</h2><span class="sub">Sent campaigns · last 30 days</span></div>
+      <div class="stat-row" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))">
+        <div class="stat"><div class="label" id="emailMonthLabel">Email revenue · this month</div><div class="num" id="emailMonthRevenue">—</div></div>
+      </div>
       <div style="overflow-x:auto">
       <table class="simple">
         <thead><tr><th>Campaign</th><th>Delivered</th><th>Open rate</th><th>Click rate</th><th>Revenue</th></tr></thead>
@@ -459,9 +546,27 @@
 
 <div class="overlay" id="overlay">
   <div class="modal">
-    <div class="mhead"><span id="modalEmoji" style="font-size:19px"></span><input type="text" id="modalTitleInput" class="title-input" aria-label="Event title"></div>
-    <div class="mdate" id="modalDate"></div>
+    <div class="mhead"><span id="modalEmoji" style="font-size:19px"></span><input type="text" id="modalTitleInput" class="title-input" aria-label="Event title" placeholder="New item name"></div>
+    <div class="mdate-row">
+      <input type="date" id="modalDate" class="date-inline" aria-label="Date">
+      <select id="modalType" class="type-select" aria-label="Type" style="display:none">
+        <option value="">Everything else</option>
+        <option value="📸">📸 Shoot / content capture</option>
+        <option value="📧">📧 Email</option>
+        <option value="💬">💬 Social / text</option>
+        <option value="🎟️">🎟️ Event</option>
+        <option value="⭐️">⭐️ Highlight</option>
+      </select>
+    </div>
     <textarea id="modalNotes" placeholder="Add notes for this…"></textarea>
+    <div class="mimgs">
+      <div class="mimgs-head">
+        <span class="lbl">Images</span>
+        <button class="addimg" id="modalAddImg" type="button">+ Add images</button>
+        <input type="file" id="modalImgInput" accept="image/*" multiple hidden>
+      </div>
+      <div class="img-grid" id="modalImgs"></div>
+    </div>
     <div class="mrow">
       <button class="cancel" id="modalCancel">Close</button>
       <button class="go" id="modalSave">Save</button>
@@ -642,8 +747,10 @@ function renderCalendar(){
     if(iso === isoOf(today.getFullYear(), today.getMonth(), today.getDate())) cell.classList.add('today');
     cell.dataset.date = iso;
 
-    const num = document.createElement('div'); num.className='cal-daynum'; num.textContent=cellD;
+    const num = document.createElement('div'); num.className='cal-daynum';
+    num.innerHTML = `<span>${cellD}</span><span class="cal-plus" aria-hidden="true">+</span>`;
     cell.appendChild(num);
+    cell.addEventListener('click', e=>{ if(!e.target.closest('.chip')) openNewEventModal(iso); });
 
     events.filter(e=>e.date===iso).forEach(ev=>{
       const chip = document.createElement('button');
@@ -683,39 +790,231 @@ function renderCalendar(){
 document.getElementById('calPrev').onclick = ()=>{ viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderCalendar(); };
 document.getElementById('calNext').onclick = ()=>{ viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderCalendar(); };
 
-let activeEventId = null;
+/* ---- event modal: edit an existing item, or create a new one ---- */
+let activeEventId = null;      // null while creating a new item
+let modalImages = [];          // images already saved on the active item
+let pendingImages = [];        // [{file, preview}] picked but not yet uploaded
+const overlayEl = document.getElementById('overlay');
+const modalDateEl = document.getElementById('modalDate');
+const modalTypeEl = document.getElementById('modalType');
+
+function closeEventModal(){
+  overlayEl.classList.remove('show');
+  pendingImages.forEach(p=> URL.revokeObjectURL(p.preview));
+  pendingImages = [];
+}
+
 function openEventModal(id){
   const ev = events.find(x=>x.id===id);
   if(!ev) return;
   activeEventId = id;
   document.getElementById('modalEmoji').textContent = ev.emoji || '';
   document.getElementById('modalTitleInput').value = ev.name;
-  document.getElementById('modalDate').textContent = fmtDate(ev.date);
+  modalDateEl.value = ev.date;
+  modalTypeEl.style.display = 'none';
   document.getElementById('modalNotes').value = ev.notes || '';
-  document.getElementById('overlay').classList.add('show');
+  modalImages = []; pendingImages = [];
+  renderModalImages('Loading…');
+  overlayEl.classList.add('show');
+  api('/api/calendar-images?id=' + encodeURIComponent(id))
+    .then(r=>{ if(activeEventId===id){ modalImages = r.images || []; renderModalImages(); } })
+    .catch(e=>{ console.error(e); if(activeEventId===id) renderModalImages('Could not load images.'); });
 }
-document.getElementById('modalCancel').onclick = ()=> document.getElementById('overlay').classList.remove('show');
-document.getElementById('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') e.currentTarget.classList.remove('show'); });
+
+function openNewEventModal(iso){
+  activeEventId = null;
+  document.getElementById('modalEmoji').textContent = '';
+  document.getElementById('modalTitleInput').value = '';
+  modalDateEl.value = iso || isoOf(today.getFullYear(), today.getMonth(), today.getDate());
+  modalTypeEl.value = '';
+  modalTypeEl.style.display = '';
+  document.getElementById('modalNotes').value = '';
+  modalImages = []; pendingImages = [];
+  renderModalImages();
+  overlayEl.classList.add('show');
+  document.getElementById('modalTitleInput').focus();
+}
+modalTypeEl.addEventListener('change', ()=>{ document.getElementById('modalEmoji').textContent = modalTypeEl.value; });
+document.getElementById('calAdd').onclick = ()=>{
+  // default to today if it's in the month being viewed, otherwise the 1st of that month
+  const inView = today.getFullYear()===viewYear && today.getMonth()===viewMonth;
+  openNewEventModal(inView ? isoOf(viewYear, viewMonth, today.getDate()) : isoOf(viewYear, viewMonth, 1));
+};
+
+function renderModalImages(message){
+  const grid = document.getElementById('modalImgs');
+  grid.innerHTML = '';
+  if(message){ grid.innerHTML = `<div class="img-empty">${esc(message)}</div>`; return; }
+  if(!modalImages.length && !pendingImages.length){
+    grid.innerHTML = '<div class="img-empty">No images yet.</div>';
+    return;
+  }
+  modalImages.forEach(img=>{
+    const t = document.createElement('div'); t.className = 'thumb';
+    t.innerHTML = `<a href="${esc(img.url)}" target="_blank" rel="noopener"><img src="${esc(img.url)}" alt="${esc(img.name||'')}" loading="lazy"></a>`;
+    if(img.removable){
+      const x = document.createElement('button'); x.className='x'; x.type='button'; x.title='Remove image'; x.textContent='✕';
+      x.onclick = ()=>{
+        if(!confirm('Remove this image from the calendar item?')) return;
+        withPasscode(async (passcode)=>{
+          try{
+            await api('/api/calendar-images', { passcode, blockId: img.blockId, delete: true });
+            setPasscode(passcode);
+            modalImages = modalImages.filter(m=>m!==img); renderModalImages();
+          }catch(err){ console.error(err); showError(err.message || 'Could not remove image'); }
+        });
+      };
+      t.appendChild(x);
+    }
+    grid.appendChild(t);
+  });
+  pendingImages.forEach(p=>{
+    const t = document.createElement('div'); t.className = 'thumb pending'; t.title = 'Uploads when you click Save';
+    t.innerHTML = `<img src="${p.preview}" alt="">`;
+    const x = document.createElement('button'); x.className='x'; x.type='button'; x.title='Don’t add'; x.textContent='✕';
+    x.onclick = ()=>{ URL.revokeObjectURL(p.preview); pendingImages = pendingImages.filter(q=>q!==p); renderModalImages(); };
+    t.appendChild(x);
+    grid.appendChild(t);
+  });
+}
+
+document.getElementById('modalAddImg').onclick = ()=> document.getElementById('modalImgInput').click();
+document.getElementById('modalImgInput').addEventListener('change', e=>{
+  [...e.target.files].forEach(file=>{
+    if(!file.type.startsWith('image/')) return;
+    pendingImages.push({ file, preview: URL.createObjectURL(file) });
+  });
+  e.target.value = '';
+  renderModalImages();
+});
+
+// Shrink photos before upload (keeps requests well under the server's size limit).
+async function imageToUpload(file){
+  try{
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, 1800 / Math.max(bmp.width, bmp.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bmp.width * scale); canvas.height = Math.round(bmp.height * scale);
+    canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise(r=> canvas.toBlob(r, 'image/jpeg', 0.85));
+    const name = (file.name || 'image').replace(/\.[^.]+$/, '') + '.jpg';
+    return { blob, name, type: 'image/jpeg' };
+  }catch{
+    if(file.size > 3.5 * 1024 * 1024) throw new Error(`${file.name} is too large and couldn't be resized — try a JPG or PNG under 3.5 MB.`);
+    return { blob: file, name: file.name || 'image', type: file.type };
+  }
+}
+function blobToBase64(blob){
+  return new Promise((resolve, reject)=>{
+    const fr = new FileReader();
+    fr.onload = ()=> resolve(String(fr.result).split(',')[1]);
+    fr.onerror = reject;
+    fr.readAsDataURL(blob);
+  });
+}
+async function uploadPendingImages(passcode, eventId, files){
+  let latest = null;
+  for(const file of files){
+    const { blob, name, type } = await imageToUpload(file);
+    const data = await blobToBase64(blob);
+    const r = await api('/api/calendar-images', { passcode, id: eventId, filename: name, contentType: type, data });
+    latest = r.images;
+  }
+  return latest;
+}
+
+document.getElementById('modalCancel').onclick = closeEventModal;
+overlayEl.addEventListener('click', e=>{ if(e.target.id==='overlay') closeEventModal(); });
 document.getElementById('modalSave').onclick = ()=>{
-  const ev = events.find(x=>x.id===activeEventId);
   const notes = document.getElementById('modalNotes').value;
   const newName = document.getElementById('modalTitleInput').value.trim();
-  document.getElementById('overlay').classList.remove('show');
-  if(!ev) return;
+  const newDate = modalDateEl.value;
+  const files = pendingImages.map(p=>p.file);
+  const saveBtn = document.getElementById('modalSave');
+
+  if(!activeEventId){
+    // ---- create ----
+    if(!newName){ document.getElementById('modalTitleInput').focus(); return; }
+    if(!newDate){ modalDateEl.focus(); return; }
+    const emoji = modalTypeEl.value;
+    withPasscode(async (passcode)=>{
+      saveBtn.disabled = true; saveBtn.textContent = files.length ? 'Uploading…' : 'Saving…';
+      try{
+        const res = await api('/api/calendar', { passcode, name: newName, date: newDate, emoji: emoji ? emoji + ' ' : '' });
+        setPasscode(passcode);
+        const ev = res.event; events.push(ev);
+        if(notes.trim()){ await api('/api/calendar', { passcode, id: ev.id, notes }); ev.notes = notes; }
+        if(files.length) await uploadPendingImages(passcode, ev.id, files);
+        closeEventModal(); renderCalendar(); renderThisWeek();
+      }catch(err){ console.error(err); showError(err.message || 'Could not add item'); }
+      finally{ saveBtn.disabled = false; saveBtn.textContent = 'Save'; }
+    });
+    return;
+  }
+
+  // ---- update ----
+  const ev = events.find(x=>x.id===activeEventId);
+  if(!ev){ closeEventModal(); return; }
   const payload = { id: ev.id, notes };
   if(newName && newName !== ev.name){ payload.name = newName; payload.emoji = ev.emoji ? ev.emoji + ' ' : ''; }
+  let newRaw = null;
+  if(newDate && newDate !== ev.date){
+    newRaw = newDate + (ev.rawDate && ev.rawDate.length > 10 ? ev.rawDate.slice(10) : '');
+    payload.date = newRaw;
+  }
   withPasscode(async (passcode)=>{
+    saveBtn.disabled = true; saveBtn.textContent = files.length ? 'Uploading…' : 'Saving…';
     try{
       await api('/api/calendar', { passcode, ...payload });
       ev.notes = notes; setPasscode(passcode);
-      if(payload.name){ ev.name = payload.name; renderCalendar(); renderThisWeek(); }
+      if(payload.name) ev.name = payload.name;
+      if(newRaw){ ev.date = newDate; ev.rawDate = newRaw; }
+      if(files.length) await uploadPendingImages(passcode, ev.id, files);
+      closeEventModal(); renderCalendar(); renderThisWeek();
     }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
+    finally{ saveBtn.disabled = false; saveBtn.textContent = 'Save'; }
   });
 };
 
-function renderThisWeek(){
-  const wStart = startOfWeek(today);
+let weekOffset = 0; // 0 = this week, -1 = last week, +1 = next week…
+function viewedWeek(){
+  const wStart = startOfWeek(today); wStart.setDate(wStart.getDate() + weekOffset*7);
   const wEnd = new Date(wStart); wEnd.setDate(wEnd.getDate()+6);
+  return { wStart, wEnd };
+}
+function isoOfDate(d){ return isoOf(d.getFullYear(), d.getMonth(), d.getDate()); }
+function defaultWeekDate(){ return weekOffset === 0 ? isoOfDate(today) : isoOfDate(viewedWeek().wStart); }
+document.getElementById('weekPrev').onclick = ()=>{ weekOffset--; renderThisWeek(); };
+document.getElementById('weekNext').onclick = ()=>{ weekOffset++; renderThisWeek(); };
+document.getElementById('weekRange').onclick = ()=>{ weekOffset = 0; renderThisWeek(); };
+
+// Reschedule an event from anywhere (keeps any time-of-day Notion has stored).
+function rescheduleEvent(ev, iso, pillEl){
+  if(!iso || iso === ev.date) return;
+  const prevDate = ev.date, prevRaw = ev.rawDate;
+  const newStart = iso + (ev.rawDate && ev.rawDate.length > 10 ? ev.rawDate.slice(10) : '');
+  ev.date = iso; ev.rawDate = newStart; renderCalendar(); renderThisWeek(); // optimistic
+  withPasscode(async (passcode)=>{
+    try{
+      await api('/api/calendar', { passcode, id: ev.id, date: newStart });
+      setPasscode(passcode);
+      flashSaved(pillEl);
+    }catch(err){
+      ev.date = prevDate; ev.rawDate = prevRaw; renderCalendar(); renderThisWeek();
+      console.error(err); showError(err.message || 'Could not change the date');
+    }
+  });
+}
+
+function renderThisWeek(){
+  const { wStart, wEnd } = viewedWeek();
+  const fmtShort = d=> d.toLocaleDateString(undefined, { month:'short', day:'numeric' });
+  document.getElementById('weekTitle').textContent =
+    weekOffset === 0 ? 'This Week' : weekOffset === -1 ? 'Last Week' : weekOffset === 1 ? 'Next Week' : 'Week of';
+  document.getElementById('weekRange').textContent = `${fmtShort(wStart)} – ${fmtShort(wEnd)}`;
+  document.getElementById('weekInput').placeholder = weekOffset === 0 ? 'Add something to this week…' : 'Add something to this week…'.replace('this', 'that');
+  const weekDateEl = document.getElementById('weekDate');
+  if(!weekDateEl.value || weekDateEl.dataset.auto === '1'){ weekDateEl.value = defaultWeekDate(); weekDateEl.dataset.auto = '1'; }
   const list = document.getElementById('thisWeekList');
   const items = events.filter(e=>{
     const d = new Date(e.date + 'T00:00:00');
@@ -745,7 +1044,10 @@ function renderThisWeek(){
     });
     what.appendChild(titleEl);
     what.appendChild(document.createElement('br'));
-    const when = document.createElement('span'); when.className='when'; when.textContent = fmtDate(ev.date);
+    const when = document.createElement('input');
+    when.type = 'date'; when.className = 'date-inline when'; when.value = ev.date;
+    when.title = 'Change date'; when.setAttribute('aria-label', 'Change date for ' + ev.name);
+    when.addEventListener('change', ()=> rescheduleEvent(ev, when.value, document.getElementById('weekSavePill')));
     what.appendChild(when);
 
     const rm = document.createElement('button'); rm.className='rm'; rm.textContent='Remove';
@@ -764,16 +1066,20 @@ function renderThisWeek(){
   });
 }
 document.getElementById('weekAdd').onclick = addWeekItem;
+document.getElementById('weekDate').addEventListener('change', e=>{ e.target.dataset.auto = '0'; });
 document.getElementById('weekInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addWeekItem(); });
 function addWeekItem(){
   const input = document.getElementById('weekInput');
+  const dateEl = document.getElementById('weekDate');
   const text = input.value.trim();
   if(!text) return;
+  const date = dateEl.value || defaultWeekDate();
   withPasscode(async (passcode)=>{
     try{
-      const res = await api('/api/calendar', { passcode, name: text, date: isoOf(today.getFullYear(), today.getMonth(), today.getDate()) });
+      const res = await api('/api/calendar', { passcode, name: text, date });
       events.push(res.event); setPasscode(passcode);
       input.value = '';
+      dateEl.dataset.auto = '1';
       renderCalendar(); renderThisWeek();
       flashSaved(document.getElementById('weekSavePill'));
     }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
@@ -789,10 +1095,25 @@ async function loadActions(){
   }catch(e){ console.error('tasks load failed', e); actions = []; }
   renderActions();
 }
+const STATUSES = ['Not Started', 'In Progress', 'Waiting', 'Done'];
+const statusClass = s=> 's-' + (s || 'Not Started').toLowerCase().replace(/\s+/g, '-');
+function saveAction(a, fields, onFail){
+  withPasscode(async (passcode)=>{
+    try{
+      await api('/api/tasks', { passcode, id: a.id, ...fields });
+      Object.assign(a, fields); setPasscode(passcode);
+      renderActions();
+      flashSaved(document.getElementById('actionSavePill'));
+    }catch(err){ console.error(err); showError(err.message || "Could not save"); if(onFail) onFail(); renderActions(); }
+  });
+}
 function renderActions(){
   const list = document.getElementById('actionList');
   list.innerHTML = '';
   if(!actions.length){ list.innerHTML = '<div class="week-empty">Nothing here yet — add a task below.</div>'; return; }
+  // soonest due first, undated last
+  actions.sort((x, y)=> (x.dueDate || '9999').localeCompare(y.dueDate || '9999'));
+  const todayIso = isoOf(today.getFullYear(), today.getMonth(), today.getDate());
   actions.forEach(a=>{
     const li = document.createElement('li');
     li.className = 'action-item' + (a.done ? ' done' : '');
@@ -802,8 +1123,8 @@ function renderActions(){
       withPasscode(async (passcode)=>{
         try{
           await api('/api/tasks', { passcode, id: a.id, done: cb.checked });
-          a.done = cb.checked; setPasscode(passcode);
-          li.classList.toggle('done', a.done);
+          a.done = cb.checked; a.status = a.done ? 'Done' : 'Not Started'; setPasscode(passcode);
+          renderActions();
           flashSaved(document.getElementById('actionSavePill'));
         }catch(err){ cb.checked = a.done; console.error(err); showError(err.message || "Could not save"); }
       });
@@ -829,7 +1150,28 @@ function renderActions(){
         }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
       });
     });
-    li.append(cb, txt, rm);
+    // due date + status, both editable in place
+    const body = document.createElement('div'); body.className = 'abody';
+    const meta = document.createElement('div'); meta.className = 'action-meta';
+    const dueWrap = document.createElement('span');
+    dueWrap.className = 'due-wrap' + (a.dueDate && a.dueDate.slice(0,10) < todayIso && !a.done ? ' overdue' : '');
+    const dueLabel = document.createElement('span'); dueLabel.className = 'due-label'; dueLabel.textContent = 'Due ';
+    const due = document.createElement('input');
+    due.type = 'date'; due.className = 'date-inline'; due.value = a.dueDate ? a.dueDate.slice(0,10) : '';
+    due.title = 'Due date'; due.setAttribute('aria-label', 'Due date for ' + a.name);
+    due.addEventListener('change', ()=> saveAction(a, { dueDate: due.value || null }));
+    dueWrap.append(dueLabel, due);
+
+    const st = document.createElement('select');
+    st.className = 'status-select ' + statusClass(a.status);
+    st.setAttribute('aria-label', 'Status for ' + a.name);
+    STATUSES.forEach(s=>{ const o = document.createElement('option'); o.value = s; o.textContent = s; st.appendChild(o); });
+    st.value = a.status || 'Not Started';
+    st.addEventListener('change', ()=> saveAction(a, { status: st.value, done: st.value === 'Done' }));
+    meta.append(dueWrap, st);
+    body.append(txt, meta);
+
+    li.append(cb, body, rm);
     list.appendChild(li);
   });
 }
@@ -837,13 +1179,14 @@ document.getElementById('actionAdd').onclick = addAction;
 document.getElementById('actionInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addAction(); });
 function addAction(){
   const input = document.getElementById('actionInput');
+  const dueEl = document.getElementById('actionDue');
   const text = input.value.trim();
   if(!text) return;
   withPasscode(async (passcode)=>{
     try{
-      const res = await api('/api/tasks', { passcode, name: text });
+      const res = await api('/api/tasks', { passcode, name: text, ...(dueEl.value ? { dueDate: dueEl.value } : {}) });
       actions.push(res.task); setPasscode(passcode);
-      input.value = '';
+      input.value = ''; dueEl.value = '';
       renderActions();
       flashSaved(document.getElementById('actionSavePill'));
     }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
@@ -928,46 +1271,56 @@ async function loadMetaStats(){
   // Top creatives (merged with notes below)
   topCreativesCache = (data.topCreatives && !data.topCreatives.error) ? data.topCreatives : [];
   if(data.topCreatives?.error) console.error('topCreatives error:', data.topCreatives.error);
-  await renderTopCreatives();
+  renderTopCreatives();
 }
 
-/* ---- creative notes (Notion-backed, merged with live Meta ranking) ---- */
-async function renderTopCreatives(){
+/* ---- top creatives: live Meta ranking as a list, plus one shared notes box ---- */
+const CREATIVE_NOTES_KEY = 'Top Performing Creatives — Notes'; // single row in the Creative Notes db
+function renderTopCreatives(){
   const rankList = document.getElementById('rankList');
   rankList.innerHTML = '';
   if(!topCreativesCache.length){
     rankList.innerHTML = '<p class="placeholder-note">Unavailable — see Vercel logs for /api/meta-stats.</p>';
     return;
   }
-  let notesByName = {};
-  try{
-    const res = await api('/api/creative-notes');
-    (res.notes||[]).forEach(n=> notesByName[n.name] = n.notes);
-  }catch(e){ console.error('creative-notes load failed', e); }
-
   topCreativesCache.forEach(c=>{
-    const div = document.createElement('div');
-    div.className = 'rank-card';
-    div.innerHTML = `<div class="rank-top"><span class="rank-name">${c.name || '(unnamed ad)'}</span><span class="rank-metric">${roasFmt(c.roas)} ROAS</span></div>
-      <div class="notelabel">Our notes</div>
-      <textarea placeholder="Why this is working…">${notesByName[c.name] || ''}</textarea>`;
-    const ta = div.querySelector('textarea');
-    let t;
-    ta.addEventListener('input', ()=>{
-      clearTimeout(t);
-      t = setTimeout(()=>{
-        withPasscode(async (passcode)=>{
-          try{
-            await api('/api/creative-notes', { passcode, name: c.name, notes: ta.value });
-            setPasscode(passcode);
-            flashSaved(document.getElementById('creativeSavePill'));
-          }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
-        });
-      }, 600);
-    });
-    rankList.appendChild(div);
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="cl-name" title="${esc(c.name || '')}">${esc(c.name || '(unnamed ad)')}</span>
+      <span class="cl-meta">${money(c.spend)} spend · ${c.purchases} purchases</span>
+      <span class="cl-roas">${roasFmt(c.roas)} ROAS</span>`;
+    rankList.appendChild(li);
   });
 }
+async function loadCreativeNotes(){
+  const ta = document.getElementById('creativeNotes');
+  try{
+    const res = await api('/api/creative-notes');
+    const all = res.notes || [];
+    const row = all.find(n=> n.name === CREATIVE_NOTES_KEY);
+    if(document.activeElement === ta) return;
+    if(row) ta.value = row.notes || '';
+    else {
+      // First run: carry over the old per-creative notes so nothing written earlier is lost.
+      ta.value = all.filter(n=> n.notes && n.notes.trim()).map(n=> `${n.name}: ${n.notes.trim()}`).join('\n\n');
+    }
+  }catch(e){ console.error('creative-notes load failed', e); }
+}
+(function(){
+  const ta = document.getElementById('creativeNotes');
+  let t;
+  ta.addEventListener('input', ()=>{
+    clearTimeout(t);
+    t = setTimeout(()=>{
+      withPasscode(async (passcode)=>{
+        try{
+          await api('/api/creative-notes', { passcode, name: CREATIVE_NOTES_KEY, notes: ta.value });
+          setPasscode(passcode);
+          flashSaved(document.getElementById('creativeSavePill'));
+        }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
+      });
+    }, 700);
+  });
+})();
 
 /* ================= paid media: updates log ================= */
 async function loadUpdates(){
@@ -1046,6 +1399,11 @@ async function loadKlaviyoStats(){
   src.textContent = 'Source: Klaviyo · Refreshed ' + new Date().toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
   if(Array.isArray(data.errors) && data.errors.length) console.warn('Klaviyo partial errors:', data.errors);
 
+  document.getElementById('emailMonthLabel').textContent =
+    'Email revenue · ' + today.toLocaleDateString(undefined, { month:'long' }) + ' so far';
+  document.getElementById('emailMonthRevenue').textContent =
+    typeof data.emailMonthRevenue === 'number' ? money(data.emailMonthRevenue) : '—';
+
   const perf = data.emailPerformance || [];
   document.getElementById('emailPerfRows').innerHTML = perf.length
     ? perf.map(c => `<tr><td>${esc(c.name)}</td><td>${c.delivered != null ? Number(c.delivered).toLocaleString() : '—'}</td><td>${pct(c.openRate)}</td><td>${pct(c.clickRate)}</td><td>${c.revenue != null ? money(c.revenue) : '—'}</td></tr>`).join('')
@@ -1058,10 +1416,48 @@ async function loadKlaviyoStats(){
   document.getElementById('upcomingSms').innerHTML = listItems(data.sms, 'No texts scheduled or in draft.');
 }
 
+/* ================= paid media: shopify cards ================= */
+async function loadShopify(){
+  let data;
+  try{ data = await api('/api/shopify'); }
+  catch(e){
+    console.error('shopify load failed', e);
+    if(e.message && !/not configured/i.test(e.message))
+      ['shopCustomers','shopCategories','shopPromos','shopProducts'].forEach(id=>{
+        document.getElementById(id).innerHTML = `<p class="placeholder-note">Shopify is connected but returned an error: ${esc(e.message)}</p>`;
+      });
+    return;
+  }
+  if(!data.configured) return; // leave the "Needs Shopify" placeholders as they are
+  document.querySelectorAll('[data-shopify-badge]').forEach(b=> b.style.display = 'none');
+
+  const c = data.customers;
+  const pctOf = (n, d)=> d ? Math.round(n / d * 100) + '%' : '—';
+  document.getElementById('shopCustomers').innerHTML = `
+    <div class="stat-row" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:6px">
+      <div class="stat"><div class="label">New customers</div><div class="num">${c.new.orders}</div><div class="delta" style="color:var(--muted)">${money(c.new.revenue)} · ${pctOf(c.new.orders, data.orderCount)} of orders</div></div>
+      <div class="stat"><div class="label">Returning customers</div><div class="num">${c.returning.orders}</div><div class="delta" style="color:var(--muted)">${money(c.returning.revenue)} · ${pctOf(c.returning.orders, data.orderCount)} of orders</div></div>
+      ${c.guest.orders ? `<div class="stat"><div class="label">Guest checkout</div><div class="num">${c.guest.orders}</div><div class="delta" style="color:var(--muted)">${money(c.guest.revenue)}</div></div>` : ''}
+    </div>
+    <p class="sub">All Shopify orders this month (${data.orderCount} orders, ${money(data.totalRevenue)}). "New" = the customer's first order.</p>`;
+
+  const list = (rows, fmt, empty)=> rows.length
+    ? `<ul class="simple-list">${rows.map(r=> `<li><span>${esc(r.name)}</span><span class="amt">${fmt(r)}</span></li>`).join('')}</ul>`
+    : `<p class="placeholder-note">${empty}</p>`;
+  document.getElementById('shopCategories').innerHTML =
+    list(data.categories, r=> `${money(r.revenue)} · ${r.units} sold`, 'No orders yet this month.');
+  document.getElementById('shopPromos').innerHTML =
+    list(data.promoCodes, r=> `${r.orders} order${r.orders===1?'':'s'} · ${money(r.revenue)}`, 'No promo codes used this month.');
+  document.getElementById('shopProducts').innerHTML =
+    list(data.topProducts, r=> `${r.units} sold · ${money(r.revenue)}`, 'No orders yet this month.');
+}
+
 /* ================= init ================= */
 loadEvents();
 loadActions();
 loadMetaStats();
+loadCreativeNotes();
+loadShopify();
 loadKlaviyoStats();
 loadUpdates();
 loadFeedback();

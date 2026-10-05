@@ -95,7 +95,7 @@ async function emailCampaignPerformance() {
   const names = {};
   for (const c of list.data || []) names[c.id] = c.attributes?.name;
   const ids = Object.keys(names);
-  if (!ids.length) return [];
+  if (!ids.length) return { rows: [], monthRevenue: 0 };
 
   const conversionMetricId = await getConversionMetricId();
   const statistics = ["delivered", "open_rate", "click_rate", "bounce_rate", "unsubscribe_rate"];
@@ -120,7 +120,26 @@ async function emailCampaignPerformance() {
     if (!byCampaign[cid]) byCampaign[cid] = row.statistics;
   }
 
-  return Object.keys(byCampaign)
+  // Total campaign revenue for the calendar month so far (separate report —
+  // the table above is a rolling 30 days). Values reports allow ~1 call/sec.
+  let monthRevenue = null;
+  if (conversionMetricId) {
+    try {
+      await new Promise((r) => setTimeout(r, 1100));
+      const monthRep = await kPost("campaign-values-reports/", {
+        data: {
+          type: "campaign-values-report",
+          attributes: { ...attributes, timeframe: { key: "this_month" }, statistics: ["conversion_value"] },
+        },
+      });
+      monthRevenue = (monthRep.data?.attributes?.results || [])
+        .reduce((sum, row) => sum + (Number(row.statistics?.conversion_value) || 0), 0);
+    } catch (e) {
+      monthRevenue = { error: e.message };
+    }
+  }
+
+  const rows = Object.keys(byCampaign)
     .filter((id) => (byCampaign[id].delivered || 0) > 0) // only campaigns that actually sent
     .map((id) => ({
       id,
@@ -133,6 +152,7 @@ async function emailCampaignPerformance() {
       revenue: byCampaign[id].conversion_value ?? null,
     }))
     .sort((a, b) => (b.delivered || 0) - (a.delivered || 0));
+  return { rows, monthRevenue };
 }
 
 module.exports = async (req, res) => {
@@ -175,7 +195,10 @@ module.exports = async (req, res) => {
   }
 
   if (perfResult.status === "fulfilled") {
-    out.emailPerformance = perfResult.value;
+    out.emailPerformance = perfResult.value.rows;
+    const mr = perfResult.value.monthRevenue;
+    if (mr && typeof mr === "object") out.errors.push("month revenue: " + mr.error);
+    else out.emailMonthRevenue = mr;
   } else {
     out.errors.push("email performance: " + perfResult.reason.message);
     out.emailPerformance = [];

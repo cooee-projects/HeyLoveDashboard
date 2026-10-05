@@ -12,6 +12,8 @@ A live dashboard that reads from Notion (stats, events, tasks, SMS, emails, vide
    - `META_AD_ACCOUNT` — `act_10152267649979326` — optional
    - `META_PAGE_ID` — your Facebook Page ID — optional (auto-detected if omitted)
    - `KLAVIYO_API_KEY` — private key (`pk_...`), read-only Campaigns/Templates scopes — optional
+   - `SHOPIFY_STORE` — e.g. `your-store.myshopify.com` — optional (Paid Media tab's Shopify cards)
+   - `SHOPIFY_CLIENT_ID` + `SHOPIFY_CLIENT_SECRET` (Dev Dashboard app) **or** `SHOPIFY_ADMIN_TOKEN` (`shpat_...`, older admin-created custom app) — scopes: `read_orders`, `read_products`, `read_customers`
 4. Click **Deploy**. Done — Vercel gives you a URL like `hey-love-dashboard.vercel.app`.
 
 ## How data flows
