@@ -4,14 +4,14 @@
 
 const BASE = "https://a.klaviyo.com/api";
 
-async function k(path) {
+async function k(path, timeoutMs = 8000) {
   const r = await fetch(`${BASE}/${path}`, {
     headers: {
       Authorization: `Klaviyo-API-Key ${process.env.KLAVIYO_API_KEY}`,
       revision: "2024-10-15",
       accept: "application/vnd.api+json",
     },
-    signal: AbortSignal.timeout(8000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   const j = await r.json();
   if (j.errors) throw new Error(j.errors[0]?.detail || "Klaviyo error");
@@ -39,7 +39,8 @@ const SHOW = ["draft", "scheduled", "queued"]; // upcoming/unsent content only â
 
 async function campaigns(channel) {
   const filter = encodeURIComponent(`equals(messages.channel,'${channel}')`);
-  const j = await k(`campaigns/?filter=${filter}&sort=-created_at&include=campaign-messages`);
+  // Email campaign lists with their messages can take >8s to come back from Klaviyo.
+  const j = await k(`campaigns/?filter=${filter}&sort=-created_at&include=campaign-messages`, 25000);
   const msgs = {};
   for (const inc of j.included || []) {
     if (inc.type === "campaign-message") msgs[inc.id] = inc;
