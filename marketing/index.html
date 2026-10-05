@@ -361,7 +361,7 @@
       <div id="calError" class="note-inline" style="display:none;background:#fdecea;color:#a33;border-radius:10px;padding:11px 14px;margin-bottom:14px;font-size:13.5px"></div>
       <div class="legend">
         <span><i style="background:var(--purple)"></i>📸 Shoot / content capture</span>
-        <span><i style="background:var(--butter)"></i>📧 Email &amp; 💬 social/text</span>
+        <span><i style="background:var(--butter)"></i>📧 Email, 📱 social &amp; 💬 SMS</span>
         <span><i style="background:var(--lightpink)"></i>Everything else</span>
         <span id="calEventCount" style="margin-left:auto;color:var(--muted)"></span>
       </div>
@@ -555,7 +555,8 @@
         <option value="">Everything else</option>
         <option value="📸">📸 Shoot / content capture</option>
         <option value="📧">📧 Email</option>
-        <option value="💬">💬 Social / text</option>
+        <option value="📱">📱 Social</option>
+        <option value="💬">💬 SMS</option>
         <option value="🎟️">🎟️ Event</option>
         <option value="⭐️">⭐️ Highlight</option>
       </select>
@@ -856,7 +857,7 @@ function setTypeSelect(emoji){
 }
 function categoryForEmoji(emoji){
   if(emoji === '📸') return 'Shoot';
-  if(emoji === '📧' || emoji === '💬') return 'Email/Social';
+  if(emoji === '📧' || emoji === '📱' || emoji === '💬') return 'Email/Social';
   return 'Other';
 }
 

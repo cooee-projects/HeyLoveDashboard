@@ -5,7 +5,7 @@
 const DB_ID = 'abed6c2cb5038318a1d401377a039e1c'; // FY26 MKT Calendar (same ID data.js uses)
 const TOKEN = () => process.env.NOTION_TOKEN || process.env.NOTION_TOKEN_TASKS;
 
-const EMOJI_RE = /^(📸|📧|💬|🎟️|🎟|⭐️|⭐|🔴)\s*/u;
+const EMOJI_RE = /^(📸|📧|📱|💬|🎟️|🎟|⭐️|⭐|🔴)\s*/u;
 function splitEmoji(name) {
   const m = (name || '').match(EMOJI_RE);
   if (m) return { emoji: m[1], text: name.slice(m[0].length) };
@@ -13,7 +13,7 @@ function splitEmoji(name) {
 }
 function categoryFor(emoji) {
   if (emoji === '📸') return 'Shoot';
-  if (emoji === '📧' || emoji === '💬') return 'Email/Social';
+  if (emoji === '📧' || emoji === '📱' || emoji === '💬') return 'Email/Social';
   return 'Other';
 }
 
