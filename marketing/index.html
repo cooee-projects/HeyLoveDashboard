@@ -371,7 +371,7 @@
     </div>
 
     <div class="card creative-notes">
-      <div class="card-head"><h2>Calendar Notes</h2><span class="savepill" id="calendarNotesSavePill">Saved</span></div>
+      <div class="card-head"><h2 id="calNotesTitle">Calendar Notes</h2><span class="savepill" id="calendarNotesSavePill">Saved</span></div>
       <textarea id="calendarNotes" placeholder="Planning notes, ideas, reminders for the calendar…" style="min-height:120px"></textarea>
     </div>
   </section>
@@ -796,8 +796,8 @@ function renderCalendar(){
     grid.appendChild(cell);
   }
 }
-document.getElementById('calPrev').onclick = ()=>{ viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderCalendar(); };
-document.getElementById('calNext').onclick = ()=>{ viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderCalendar(); };
+document.getElementById('calPrev').onclick = ()=>{ viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderCalendar(); onCalendarMonthChange(); };
+document.getElementById('calNext').onclick = ()=>{ viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderCalendar(); onCalendarMonthChange(); };
 
 /* ---- event modal: edit an existing item, or create a new one ---- */
 let activeEventId = null;      // null while creating a new item
@@ -1344,46 +1344,72 @@ function renderTopCreatives(){
     rankList.appendChild(li);
   });
 }
-const CALENDAR_NOTES_KEY = 'Mktg Calendar — Notes';       // same db, its own row
+// Calendar notes are per month: one row per month, e.g. "Mktg Calendar — Notes — 2026-10".
+const CALENDAR_NOTES_PREFIX = 'Mktg Calendar — Notes';
+const LEGACY_CALENDAR_MONTH = '2026-10'; // the single shared box (before per-month) was added in Oct 2026
+const calendarNotesKey = ()=> `${CALENDAR_NOTES_PREFIX} — ${viewYear}-${String(viewMonth+1).padStart(2,'0')}`;
+const notesCache = {}; // row name -> notes text
 
 // Free-text notes boxes that save themselves as you type (one Notion row each).
 async function loadNotesBoxes(){
   const creativeTa = document.getElementById('creativeNotes');
-  const calendarTa = document.getElementById('calendarNotes');
   try{
     const res = await api('/api/creative-notes');
     const all = res.notes || [];
+    all.forEach(n=> notesCache[n.name] = n.notes || '');
+    const legacy = notesCache[CALENDAR_NOTES_PREFIX];
+    const legacyKey = `${CALENDAR_NOTES_PREFIX} — ${LEGACY_CALENDAR_MONTH}`;
+    if(legacy && !(legacyKey in notesCache)) notesCache[legacyKey] = legacy;
+
     const row = all.find(n=> n.name === CREATIVE_NOTES_KEY);
     if(document.activeElement !== creativeTa){
       if(row) creativeTa.value = row.notes || '';
       else {
         // First run: carry over the old per-creative notes so nothing written earlier is lost.
-        creativeTa.value = all.filter(n=> n.notes && n.notes.trim() && n.name !== CALENDAR_NOTES_KEY)
+        creativeTa.value = all.filter(n=> n.notes && n.notes.trim() && !n.name.startsWith(CALENDAR_NOTES_PREFIX))
           .map(n=> `${n.name}: ${n.notes.trim()}`).join('\n\n');
       }
     }
-    const cal = all.find(n=> n.name === CALENDAR_NOTES_KEY);
-    if(cal && document.activeElement !== calendarTa) calendarTa.value = cal.notes || '';
   }catch(e){ console.error('notes load failed', e); }
+  renderCalendarNotes();
 }
-function autosaveNotes(textareaId, pillId, key){
+function renderCalendarNotes(){
+  const ta = document.getElementById('calendarNotes');
+  const monthName = new Date(viewYear, viewMonth, 1).toLocaleDateString(undefined, { month:'long', year:'numeric' });
+  document.getElementById('calNotesTitle').textContent = `${monthName} Notes`;
+  ta.placeholder = `Planning notes, ideas, reminders for ${new Date(viewYear, viewMonth, 1).toLocaleDateString(undefined, { month:'long' })}…`;
+  if(document.activeElement !== ta) ta.value = notesCache[calendarNotesKey()] || '';
+}
+function onCalendarMonthChange(){
+  calendarNotesBox.flush(); // save anything typed for the month we're leaving
+  renderCalendarNotes();
+}
+function autosaveNotes(textareaId, pillId, getKey){
   const ta = document.getElementById(textareaId);
-  let t;
-  ta.addEventListener('input', ()=>{
+  let t, pending = null;
+  function flush(){
     clearTimeout(t);
-    t = setTimeout(()=>{
-      withPasscode(async (passcode)=>{
-        try{
-          await api('/api/creative-notes', { passcode, name: key, notes: ta.value });
-          setPasscode(passcode);
-          flashSaved(document.getElementById(pillId));
-        }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
-      });
-    }, 700);
+    if(!pending) return;
+    const { key, value } = pending; pending = null;
+    withPasscode(async (passcode)=>{
+      try{
+        await api('/api/creative-notes', { passcode, name: key, notes: value });
+        setPasscode(passcode);
+        flashSaved(document.getElementById(pillId));
+      }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
+    });
+  }
+  ta.addEventListener('input', ()=>{
+    const key = getKey();          // captured now, so a quick month switch can't misfile it
+    notesCache[key] = ta.value;
+    pending = { key, value: ta.value };
+    clearTimeout(t);
+    t = setTimeout(flush, 700);
   });
+  return { flush };
 }
-autosaveNotes('creativeNotes', 'creativeSavePill', CREATIVE_NOTES_KEY);
-autosaveNotes('calendarNotes', 'calendarNotesSavePill', CALENDAR_NOTES_KEY);
+autosaveNotes('creativeNotes', 'creativeSavePill', ()=> CREATIVE_NOTES_KEY);
+const calendarNotesBox = autosaveNotes('calendarNotes', 'calendarNotesSavePill', calendarNotesKey);
 
 /* ================= paid media: updates log ================= */
 async function loadUpdates(){
