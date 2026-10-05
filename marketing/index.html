@@ -1041,20 +1041,28 @@ document.getElementById('weekPrev').onclick = ()=>{ weekOffset--; renderThisWeek
 document.getElementById('weekNext').onclick = ()=>{ weekOffset++; renderThisWeek(); };
 document.getElementById('weekRange').onclick = ()=>{ weekOffset = 0; renderThisWeek(); };
 
-// Reschedule an event from anywhere (keeps any time-of-day Notion has stored).
-function rescheduleEvent(ev, iso, pillEl){
-  if(!iso || iso === ev.date) return;
-  const prevDate = ev.date, prevRaw = ev.rawDate;
-  const newStart = iso + (ev.rawDate && ev.rawDate.length > 10 ? ev.rawDate.slice(10) : '');
-  ev.date = iso; ev.rawDate = newStart; renderCalendar(); renderThisWeek(); // optimistic
+// "This Week" is its own hand-added list (api/week), separate from the calendar.
+let weekItems = [];
+let weekLoaded = false;
+async function loadWeekItems(){
+  try{
+    const data = await api('/api/week');
+    weekItems = data.items || [];
+  }catch(e){ console.error('this week load failed', e); weekItems = []; }
+  weekLoaded = true;
+  renderThisWeek();
+}
+function saveWeekItem(item, fields){
+  const prev = { ...item };
+  Object.assign(item, fields); renderThisWeek(); // optimistic
   withPasscode(async (passcode)=>{
     try{
-      await api('/api/calendar', { passcode, id: ev.id, date: newStart });
+      await api('/api/week', { passcode, id: item.id, ...fields });
       setPasscode(passcode);
-      flashSaved(pillEl);
+      flashSaved(document.getElementById('weekSavePill'));
     }catch(err){
-      ev.date = prevDate; ev.rawDate = prevRaw; renderCalendar(); renderThisWeek();
-      console.error(err); showError(err.message || 'Could not change the date');
+      Object.assign(item, prev); renderThisWeek();
+      console.error(err); showError(err.message || 'Could not save');
     }
   });
 }
@@ -1065,51 +1073,41 @@ function renderThisWeek(){
   document.getElementById('weekTitle').textContent =
     weekOffset === 0 ? 'This Week' : weekOffset === -1 ? 'Last Week' : weekOffset === 1 ? 'Next Week' : 'Week of';
   document.getElementById('weekRange').textContent = `${fmtShort(wStart)} – ${fmtShort(wEnd)}`;
-  document.getElementById('weekInput').placeholder = weekOffset === 0 ? 'Add something to this week…' : 'Add something to this week…'.replace('this', 'that');
+  document.getElementById('weekInput').placeholder = weekOffset === 0 ? 'Add something to this week…' : 'Add something to that week…';
   const weekDateEl = document.getElementById('weekDate');
   if(!weekDateEl.value || weekDateEl.dataset.auto === '1'){ weekDateEl.value = defaultWeekDate(); weekDateEl.dataset.auto = '1'; }
   const list = document.getElementById('thisWeekList');
-  const items = events.filter(e=>{
-    const d = new Date(e.date + 'T00:00:00');
-    return d >= wStart && d <= wEnd;
-  }).sort((a,b)=> a.date.localeCompare(b.date));
+  const from = isoOfDate(wStart), to = isoOfDate(wEnd);
+  const items = weekItems.filter(i=> i.date >= from && i.date <= to)
+    .sort((a,b)=> a.date.localeCompare(b.date));
 
   list.innerHTML = '';
+  if(!weekLoaded){ list.innerHTML = '<div class="week-empty">Loading…</div>'; return; }
   if(!items.length){
     list.innerHTML = '<div class="week-empty">Nothing here yet — add something below.</div>';
     return;
   }
-  items.forEach(ev=>{
+  items.forEach(item=>{
     const li = document.createElement('li');
     li.className = 'week-item';
-    const dot = document.createElement('span'); dot.className='dot'; dot.textContent = ev.emoji || '•';
+    const dot = document.createElement('span'); dot.className='dot'; dot.textContent = '•';
 
     const what = document.createElement('span'); what.className='what';
-    const titleEl = editableText(ev.name, (newText)=>{
-      withPasscode(async (passcode)=>{
-        try{
-          await api('/api/calendar', { passcode, id: ev.id, name: newText, emoji: ev.emoji ? ev.emoji + ' ' : '' });
-          ev.name = newText; setPasscode(passcode);
-          renderCalendar(); renderThisWeek();
-          flashSaved(document.getElementById('weekSavePill'));
-        }catch(err){ console.error(err); showError(err.message || "Could not save"); renderThisWeek(); }
-      });
-    });
-    what.appendChild(titleEl);
+    what.appendChild(editableText(item.name, (newText)=>{ if(newText !== item.name) saveWeekItem(item, { name: newText }); else renderThisWeek(); }));
     what.appendChild(document.createElement('br'));
     const when = document.createElement('input');
-    when.type = 'date'; when.className = 'date-inline when'; when.value = ev.date;
-    when.title = 'Change date'; when.setAttribute('aria-label', 'Change date for ' + ev.name);
-    when.addEventListener('change', ()=> rescheduleEvent(ev, when.value, document.getElementById('weekSavePill')));
+    when.type = 'date'; when.className = 'date-inline when'; when.value = item.date;
+    when.title = 'Change date'; when.setAttribute('aria-label', 'Change date for ' + item.name);
+    when.addEventListener('change', ()=>{ if(when.value && when.value !== item.date) saveWeekItem(item, { date: when.value }); });
     what.appendChild(when);
 
     const rm = document.createElement('button'); rm.className='rm'; rm.textContent='Remove';
     rm.addEventListener('click', ()=>{
       withPasscode(async (passcode)=>{
         try{
-          await api('/api/calendar', { passcode, id: ev.id, delete: true });
-          events = events.filter(x=>x.id!==ev.id); setPasscode(passcode);
-          renderCalendar(); renderThisWeek();
+          await api('/api/week', { passcode, id: item.id, delete: true });
+          weekItems = weekItems.filter(x=>x.id!==item.id); setPasscode(passcode);
+          renderThisWeek();
           flashSaved(document.getElementById('weekSavePill'));
         }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
       });
@@ -1129,11 +1127,11 @@ function addWeekItem(){
   const date = dateEl.value || defaultWeekDate();
   withPasscode(async (passcode)=>{
     try{
-      const res = await api('/api/calendar', { passcode, name: text, date });
-      events.push(res.event); setPasscode(passcode);
+      const res = await api('/api/week', { passcode, name: text, date });
+      weekItems.push(res.item); setPasscode(passcode);
       input.value = '';
       dateEl.dataset.auto = '1';
-      renderCalendar(); renderThisWeek();
+      renderThisWeek();
       flashSaved(document.getElementById('weekSavePill'));
     }catch(err){ console.error(err); showError(err.message || "Something went wrong"); }
   });
@@ -1543,6 +1541,7 @@ async function loadShopify(){
 
 /* ================= init ================= */
 loadEvents();
+loadWeekItems();
 loadActions();
 loadMetaStats();
 loadNotesBoxes();
