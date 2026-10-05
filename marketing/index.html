@@ -187,6 +187,8 @@
   .modal .mrow{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
   .modal .mrow button{border:0;border-radius:9px;padding:9px 16px;font-weight:600;font-size:13.5px}
   .modal .cancel{background:none;color:var(--muted)}
+  .modal .mrow .del{background:none;color:#b8524a;margin-right:auto;padding-left:0}
+  .modal .mrow .del:hover{text-decoration:underline}
   .modal .go{background:var(--pink-deep);color:#fff}
   .modal .go:disabled{opacity:.6;cursor:default}
   .modal .mdate-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}
@@ -568,6 +570,7 @@
       <div class="img-grid" id="modalImgs"></div>
     </div>
     <div class="mrow">
+      <button class="del" id="modalDelete" type="button">Delete</button>
       <button class="cancel" id="modalCancel">Close</button>
       <button class="go" id="modalSave">Save</button>
     </div>
@@ -811,7 +814,9 @@ function openEventModal(id){
   document.getElementById('modalEmoji').textContent = ev.emoji || '';
   document.getElementById('modalTitleInput').value = ev.name;
   modalDateEl.value = ev.date;
-  modalTypeEl.style.display = 'none';
+  setTypeSelect(ev.emoji || '');
+  modalTypeEl.style.display = '';
+  document.getElementById('modalDelete').style.display = '';
   document.getElementById('modalNotes').value = ev.notes || '';
   modalImages = []; pendingImages = [];
   renderModalImages('Loading…');
@@ -826,8 +831,9 @@ function openNewEventModal(iso){
   document.getElementById('modalEmoji').textContent = '';
   document.getElementById('modalTitleInput').value = '';
   modalDateEl.value = iso || isoOf(today.getFullYear(), today.getMonth(), today.getDate());
-  modalTypeEl.value = '';
+  setTypeSelect('');
   modalTypeEl.style.display = '';
+  document.getElementById('modalDelete').style.display = 'none';
   document.getElementById('modalNotes').value = '';
   modalImages = []; pendingImages = [];
   renderModalImages();
@@ -835,6 +841,42 @@ function openNewEventModal(iso){
   document.getElementById('modalTitleInput').focus();
 }
 modalTypeEl.addEventListener('change', ()=>{ document.getElementById('modalEmoji').textContent = modalTypeEl.value; });
+
+// Type = the leading emoji on the Notion title. Older items may use a variant
+// (🎟 / ⭐ / 🔴) that isn't in the list, so add it on the fly rather than lose it.
+const EMOJI_ALIASES = { '🎟':'🎟️', '⭐':'⭐️' };
+function setTypeSelect(emoji){
+  modalTypeEl.querySelectorAll('option[data-extra]').forEach(o=> o.remove());
+  const v = EMOJI_ALIASES[emoji] || emoji;
+  if(v && ![...modalTypeEl.options].some(o=> o.value === v)){
+    const o = document.createElement('option'); o.value = v; o.textContent = v; o.dataset.extra = '1';
+    modalTypeEl.appendChild(o);
+  }
+  modalTypeEl.value = v;
+}
+function categoryForEmoji(emoji){
+  if(emoji === '📸') return 'Shoot';
+  if(emoji === '📧' || emoji === '💬') return 'Email/Social';
+  return 'Other';
+}
+
+document.getElementById('modalDelete').onclick = ()=>{
+  const ev = events.find(x=>x.id===activeEventId);
+  if(!ev) return;
+  if(!confirm(`Delete "${ev.name}" from the calendar?\n\nIt moves to Notion's trash, so it can be restored from there for 30 days.`)) return;
+  withPasscode(async (passcode)=>{
+    const btn = document.getElementById('modalDelete');
+    btn.disabled = true; btn.textContent = 'Deleting…';
+    try{
+      await api('/api/calendar', { passcode, id: ev.id, delete: true });
+      setPasscode(passcode);
+      events = events.filter(x=> x.id !== ev.id);
+      closeEventModal(); renderCalendar(); renderThisWeek();
+      document.getElementById('calEventCount').textContent = `${events.length} event${events.length===1?'':'s'} loaded (all months)`;
+    }catch(err){ console.error(err); showError(err.message || 'Could not delete'); }
+    finally{ btn.disabled = false; btn.textContent = 'Delete'; }
+  });
+};
 document.getElementById('calAdd').onclick = ()=>{
   // default to today if it's in the month being viewed, otherwise the 1st of that month
   const inView = today.getFullYear()===viewYear && today.getMonth()===viewMonth;
@@ -956,7 +998,12 @@ document.getElementById('modalSave').onclick = ()=>{
   const ev = events.find(x=>x.id===activeEventId);
   if(!ev){ closeEventModal(); return; }
   const payload = { id: ev.id, notes };
-  if(newName && newName !== ev.name){ payload.name = newName; payload.emoji = ev.emoji ? ev.emoji + ' ' : ''; }
+  const newEmoji = modalTypeEl.value;
+  const typeChanged = newEmoji !== (EMOJI_ALIASES[ev.emoji] || ev.emoji || '');
+  if((newName && newName !== ev.name) || typeChanged){
+    payload.name = newName || ev.name;
+    payload.emoji = newEmoji ? newEmoji + ' ' : '';
+  }
   let newRaw = null;
   if(newDate && newDate !== ev.date){
     newRaw = newDate + (ev.rawDate && ev.rawDate.length > 10 ? ev.rawDate.slice(10) : '');
@@ -967,7 +1014,7 @@ document.getElementById('modalSave').onclick = ()=>{
     try{
       await api('/api/calendar', { passcode, ...payload });
       ev.notes = notes; setPasscode(passcode);
-      if(payload.name) ev.name = payload.name;
+      if(payload.name){ ev.name = payload.name; ev.emoji = newEmoji; ev.category = categoryForEmoji(newEmoji); }
       if(newRaw){ ev.date = newDate; ev.rawDate = newRaw; }
       if(files.length) await uploadPendingImages(passcode, ev.id, files);
       closeEventModal(); renderCalendar(); renderThisWeek();
