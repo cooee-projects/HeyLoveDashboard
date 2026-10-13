@@ -271,30 +271,15 @@
   .simple-list li:last-child{border-bottom:0}
   .simple-list .amt{color:var(--muted);white-space:nowrap;font-size:13px}
 
-  /* ---------- paid: decision support ---------- */
-  .margin-set{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);font-weight:600;white-space:nowrap}
-  .margin-set input{width:58px;border:1px solid var(--line);border-radius:7px;padding:4px 6px;font:inherit;color:var(--ink);text-align:right;background:#fff}
-  .verdict{display:flex;gap:12px;align-items:flex-start;border-radius:12px;padding:14px 16px;margin-bottom:14px;background:var(--cream-3)}
-  .verdict .vicon{font-size:14px;font-weight:700;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;color:#fff}
-  .verdict.good .vicon{background:#3f7a4e}
-  .verdict.warn .vicon{background:#8a6d1a}
-  .verdict.bad .vicon{background:#b8524a}
-  .verdict .vtitle{font-weight:700;font-size:15px;line-height:1.35}
-  .verdict .vbody{font-size:13.5px;margin-top:3px}
+  /* ---------- paid: month-by-month history ---------- */
   .checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
   .check{border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
-  .check .ctop{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
   .check .clabel{font-size:12px;color:var(--muted);font-weight:600}
-  .status{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap}
-  .status.good{background:var(--active);color:var(--active-text)}
-  .status.warn{background:var(--butter);color:var(--butter-text)}
-  .status.bad{background:#fbe0dd;color:#9c3d36}
   .check .cval{font-family:var(--serif);font-size:22px;font-weight:600;margin:4px 0 2px}
   .check .cnote{font-size:12px;color:var(--muted);line-height:1.4}
   .chart-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:8px}
   .chart-legend span{display:inline-flex;align-items:center;gap:6px}
   .chart-legend i,.chart-tip i{width:10px;height:10px;border-radius:3px;display:inline-block;flex:none}
-  .chart-legend i.line,.chart-tip i.line{width:16px;height:0;border-top:2px dashed var(--ink);border-radius:0}
   .chart-wrap{position:relative;width:100%}
   .chart-wrap svg{display:block;width:100%;height:auto}
   .chart-wrap .hit{cursor:default;outline:none}
@@ -305,19 +290,11 @@
   .chart-tip .trow span{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600}
   .hist-table th,.hist-table td{white-space:nowrap}
   .hist-table td{font-variant-numeric:tabular-nums}
-  .roas-flag{font-weight:600}
-  .roas-flag.good{color:#3f7a4e}
-  .roas-flag.bad{color:#b8524a}
   .camp-row{cursor:pointer}
   .camp-row:hover td,.camp-row:focus-visible td{background:var(--cream-3)}
   .camp-row .caret{display:inline-block;width:12px;color:var(--muted)}
   .camp-month td{font-size:12.5px;color:var(--muted);background:#fffafc;padding-top:7px;padding-bottom:7px}
   .camp-month td:first-child{padding-left:28px}
-  .analysis h3{font-family:var(--serif);font-size:16px;margin:18px 0 6px}
-  .analysis ul,.analysis ol{margin:0;padding-left:20px}
-  .analysis li{margin:6px 0;font-size:14px}
-  .analysis li ul{margin-top:4px}
-  .analysis .lede{font-size:15px;background:var(--cream-3);border-radius:12px;padding:12px 14px;margin:0 0 4px}
 
   /* ---------- social report ---------- */
   .metric-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;margin-bottom:16px}
@@ -491,18 +468,11 @@
       </div>
     </div>
 
-    <!-- ---------- paid: decision support (month-by-month history from /api/meta-stats?view=history) ---------- -->
+    <!-- ---------- paid: month-by-month history (from /api/meta-stats?view=history) ---------- -->
     <div class="card" id="paidHealthCard">
-      <div class="card-head">
-        <div><h2>Should we keep spending?</h2><div class="sub" id="paidHealthSub">Loading 12 months of Meta data…</div></div>
-        <label class="margin-set">Gross margin
-          <input type="number" id="paidMargin" min="10" max="90" step="1" value="50" aria-label="Gross margin percent">%
-          <span class="savepill" id="paidMarginSave">Saved</span>
-        </label>
-      </div>
-      <div id="paidVerdict"></div>
+      <div class="card-head"><h2>Key numbers</h2><span class="sub" id="paidHealthSub">Loading 12 months of Meta data…</span></div>
       <div id="paidChecks"></div>
-      <p class="sub" style="margin-top:12px">"Clicked sales" = someone clicked an ad and bought within 7 days. "View-through" = someone bought within 1 day of an ad appearing on screen, without clicking — Meta counts these too, but many would have happened anyway. Break-even ROAS = 1 ÷ gross margin.</p>
+      <p class="sub" style="margin-top:12px">"Clicked sales" = someone clicked an ad and bought within 7 days. "View-through" = someone bought within 1 day of an ad appearing on screen, without clicking. Meta's ROAS counts both.</p>
     </div>
 
     <div class="card">
@@ -516,66 +486,6 @@
           <tbody id="paidHistRows"><tr><td colspan="11" class="placeholder-note">Loading…</td></tr></tbody>
         </table>
       </div>
-    </div>
-
-    <div class="card analysis" id="paidAnalysis">
-      <div class="card-head"><h2>Our read: is paid working?</h2><span class="sub">Written Oct 13, 2026 · Meta data Oct 2025 – Oct 12, 2026</span></div>
-
-      <p class="lede">Since March, paid has only looked profitable because Meta counts "view-through" sales. Counting only sales where someone clicked an ad, it hasn't covered its cost for seven months. Before deciding to keep spending or switch it off, run a 4-week pause test (below) so the decision rests on your actual sales, not Meta's credit.</p>
-
-      <h3>1. What the numbers say</h3>
-      <ul>
-        <li><b>Oct 2025 – Feb 2026 worked.</b> $2,308 spent; 74 of 89 sales came from ad clicks. Click-only ROAS 3.0× — profitable even on the strictest measure (about $1,200 gross profit after ad costs).</li>
-        <li><b>Mar – Oct 2026 hasn't.</b> $5,449 spent; clicked sales brought in only $3,101 (click-only ROAS 0.57×). 85% of the revenue Meta credits is view-through.</li>
-        <li><b>Meta's 3.9× ROAS for that period is mostly one month.</b> In April, 6 sales were credited at $7,841 (≈ $1,300 each, against a normal $65–90 order). Leave those out and Meta's own figure drops to 2.4×.</li>
-        <li><b>What has to be true to break even.</b> At a 50% margin, paid breaks even at 2.0× ROAS. For Jul–Sep to break even, about <b>65% of the view-through sales Meta claims</b> would need to be sales the ads actually caused. Across Mar–Oct it's 77%.</li>
-        <li><b>Range of outcomes, Jul–Sep:</b> from about <b>–$1,700</b> (only clicked sales are real) to <b>+$900</b> (every view-through sale is real), after ad costs.</li>
-      </ul>
-
-      <h3>2. Why we don't take the view-through number at face value</h3>
-      <ul>
-        <li><b>The ads are reaching people who already shop with you.</b> Jun–Aug reached only 5–10k people a month, each seeing ads 4–6.6 times — largely Hey Love's existing followers (13.4k on Instagram), email list and store regulars. When they buy anyway, Meta claims the sale because an ad crossed their screen that day.</li>
-        <li><b>View-through order values jump around.</b> Clicked orders mostly average $60–100 a month; view-through averages swing from $43 to $781. That pattern fits catching unrelated large orders, not ad-driven shopping.</li>
-        <li><b>The click funnel got worse as view-through grew.</b> Cost per add-to-cart roughly tripled ($2.60–3.90 last autumn → $4.70–16.80 since March).</li>
-        <li><b>The other side:</b> Meta can't see in-store sales, and clicks undercount some buyers who switch devices. The true return is somewhere between 0.6× and 2.4× — and break-even (2.0×) sits inside that range. That's exactly why we should test rather than guess.</li>
-      </ul>
-
-      <h3>3. What changed in March</h3>
-      <ul>
-        <li><b>More money into a small, local audience.</b> Average spend rose from about $460 to $760 a month. The same people saw ads more often (frequency 1.6–1.8 last autumn → 4–6.6 in Jun–Aug).</li>
-        <li><b>Reach got more expensive.</b> Cost per 1,000 people reached (CPM) went from $15–21 (Oct–Jan) to $27–37 (Aug–Oct) — about 65% more for the same reach — and Q4 pushes it higher.</li>
-        <li><b>The campaign that worked was replaced.</b> The always-on "2025-Hey Love-Sales-AO" (~$330/month, broad) gave way to several smaller campaigns (ABO, custom audience & lookalike, placement splits). None matched it on clicked sales.</li>
-        <li><b>Clicks were lost before the site loaded.</b> In Jun–Jul only 61–69% of ad clicks reached the landing page (normally 95%+). This recovered to 96% in September.</li>
-      </ul>
-
-      <h3>4. What is working — keep this when you spend</h3>
-      <ul>
-        <li><b>Product-led creative.</b> "Tart by Taylor" turned $186 into 5 clicked sales (1.9× click-only) — the only ad near break-even on clicks.</li>
-        <li><b>Attention isn't sales.</b> "Gameday Mashup" has an 8% click-through rate (very high) but 0.85× click-only. The "Multiple Video Ad" took the most budget ($746) at 0.81×.</li>
-        <li><b>Placements.</b> Instagram Stories is the best (1.24× click-only). Instagram Feed is the weakest for its spend ($718 at 0.45×).</li>
-        <li><b>Who buys.</b> Women 35–54. Over-65s ($180) and 18–24s ($92) produced no clicked sales in the last 90 days.</li>
-      </ul>
-
-      <h3>5. Recommendation: a 4-week pause test, decided before Black Friday</h3>
-      <ol>
-        <li><b>Oct 20 – Nov 16: pause all Meta spend</b> (currently about $175 a week).</li>
-        <li><b>Track total weekly sales</b> — online (Shopify) and in-store — against the 4 weeks before and the same weeks last year. Keep email, organic posting and events as normal, and note anything unusual.</li>
-        <li><b>Decision rule at a 50% margin:</b> $175 a week of ads pays for itself only if it creates at least <b>$350 a week</b> in extra sales.
-          <ul>
-            <li>Weekly sales drop by <b>less than ~$350</b> while paused → the ads weren't paying for themselves. Stay off, and move the budget to what's working (events, email, creators).</li>
-            <li>Weekly sales drop by <b>more than ~$350</b> → the ads were working. Relaunch for Black Friday with the setup below.</li>
-          </ul>
-        </li>
-        <li><b>Connect Shopify before Oct 20</b> so online orders (and new vs. returning customers) are measured automatically. Type in-store totals weekly.</li>
-        <li><b>If the result is unclear</b> (normal week-to-week swings can hide a few hundred dollars), run one more off/on cycle before committing either way.</li>
-      </ol>
-
-      <h3>6. If ads come back, run them like this</h3>
-      <ul>
-        <li>One always-on sales campaign, broad targeting, women 25–64, about $25/day. Leave out past purchasers and followers where possible, so you aren't paying for people who'd buy anyway.</li>
-        <li>Product-led creative — one hero product with its price, in the style of "Tart by Taylor" — built for Stories and Reels first.</li>
-        <li>Judge it on clicked sales only. Targets: <b>cost per clicked sale ≤ $35</b> (half of a ~$70 order), <b>click-only ROAS ≥ 2.0×</b>, <b>frequency under 3</b> a month. If two months in a row miss, pause again.</li>
-      </ul>
     </div>
 
     <div class="card">
@@ -2041,12 +1951,8 @@ document.getElementById('socialNext').onclick = ()=>{ if(socialMonth >= thisMont
 
 /* ================= paid media: month-by-month history & "should we keep spending?" ================= */
 // Data: /api/meta-stats?view=history (12+ months of Meta Ads, purchases split into 7-day-click vs 1-day-view).
-const PAID_MARGIN_KEY = 'Paid settings — Gross margin %'; // stored in the shared notes db
 const CLICK_COLOR = '#b5574f', VIEW_COLOR = '#9a6bd1';    // validated pair (lightness, chroma, CVD, contrast)
-let paidHistory = null, paidHistoryLoading = null, paidMargin = 50;
-let notesReady = null; // set at init; the saved margin comes from the notes db
-
-const marginFrac = ()=> Math.min(Math.max(Number(paidMargin) || 50, 10), 90) / 100;
+let paidHistory = null, paidHistoryLoading = null;
 const xFmt = n => n === null || n === undefined || !isFinite(n) ? '—' : n.toFixed(2) + '×';
 const pctFmt = n => n === null || n === undefined || !isFinite(n) ? '—' : Math.round(n * 100) + '%';
 const money2 = n => '$' + Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -2061,21 +1967,13 @@ const clickRoas = t => t.spend ? t.revenueClick / t.spend : null;
 const metaRoas = t => t.spend ? t.revenue / t.spend : null;
 const costPerClickSale = t => t.purchasesClick ? t.spend / t.purchasesClick : null;
 const mLabel = (m, opts = { month:'short', year:'numeric' }) => monthLabel(m, opts);
-function roasCell(v){
-  if(v === null || v === undefined) return '—';
-  const be = 1 / marginFrac();
-  return v >= be ? `<span class="roas-flag good" title="At or above break-even (${be.toFixed(1)}×)">✓ ${xFmt(v)}</span>`
-                 : `<span class="roas-flag bad" title="Below break-even (${be.toFixed(1)}×)">✕ ${xFmt(v)}</span>`;
-}
 
 function loadPaidHistory(){
   if(paidHistoryLoading) return paidHistoryLoading;
   paidHistoryLoading = (async ()=>{
     try{
-      const [data] = await Promise.all([api('/api/meta-stats?view=history&months=13'), notesReady]);
+      const data = await api('/api/meta-stats?view=history&months=13');
       paidHistory = data;
-      const saved = Number(notesCache[PAID_MARGIN_KEY]);
-      if(saved >= 10 && saved <= 90){ paidMargin = saved; document.getElementById('paidMargin').value = saved; }
       if(data.errors && data.errors.length) console.warn('paid history partial errors:', data.errors);
       renderPaidHistory();
     }catch(e){
@@ -2098,16 +1996,12 @@ function renderPaidHistory(){
   renderPaidAudience(h.ageGender || [], h.placements || []);
 }
 
-/* ---- verdict + checks ---- */
+/* ---- key numbers (last 3 full months) ---- */
 function renderPaidHealth(h){
-  const m = marginFrac(), be = 1 / m;
   const full = h.months.filter(r=> r.month < thisMonthKey);
   const l3rows = full.slice(-3), l1 = full[full.length - 1];
   const t = sumRows(l3rows);
-  const cR = clickRoas(t), mR = metaRoas(t);
-  const viewNeeded = t.revenueView ? Math.max(0, (be * t.spend - t.revenueClick) / t.revenueView) : null;
   const clickAov = t.purchasesClick ? t.revenueClick / t.purchasesClick : null;
-  const beCpa = clickAov ? clickAov * m : null;
   const cpcs = costPerClickSale(t);
   const priorCpm = full.slice(0, -1).map(r=> r.cpm).filter(Boolean).sort((a,b)=> a-b);
   const medCpm = priorCpm.length ? priorCpm[Math.floor(priorCpm.length / 2)] : null;
@@ -2115,46 +2009,23 @@ function renderPaidHealth(h){
   const lpvRate = l1 && l1.linkClicks ? l1.landingPageViews / l1.linkClicks : null;
   const range = l3rows.length ? `${mLabel(l3rows[0].month, { month:'short' })}–${mLabel(l3rows[l3rows.length-1].month)}` : '';
   const l1Name = l1 ? mLabel(l1.month, { month:'long' }) : '';
+  document.getElementById('paidHealthSub').textContent = `Last 3 full months (${range}) unless noted`;
 
-  document.getElementById('paidHealthSub').textContent =
-    `Last 3 full months (${range}) · break-even ROAS ${be.toFixed(1)}× at a ${Math.round(m*100)}% margin`;
-
-  let v;
-  if(cR !== null && cR >= be){
-    v = { cls:'good', icon:'✓', title:'Keep spending — paid is profitable even on clicked sales alone.',
-      body:`Click-only ROAS is ${xFmt(cR)} against a ${be.toFixed(1)}× break-even. Scale slowly, and keep cost per clicked sale under ${beCpa ? money(beCpa) : 'break-even'}.` };
-  } else if(mR !== null && mR < be){
-    v = { cls:'bad', icon:'✕', title:"Pause — paid isn't covering its cost on any measure.",
-      body:`Even counting every view-through sale, Meta's ROAS is ${xFmt(mR)} against a ${be.toFixed(1)}× break-even. Rebuild the campaign before spending again.` };
-  } else {
-    v = { cls:'warn', icon:'!', title:'Test before spending more — paid only breaks even if most view-through sales are real.',
-      body:`Click-only ROAS is ${xFmt(cR)}; Meta's figure including view-through is ${xFmt(mR)}. For paid to break even, ${pctFmt(viewNeeded)} of view-through sales would have to be caused by the ads. A pause test settles it — see "Our read" below.` };
-  }
-  document.getElementById('paidVerdict').innerHTML =
-    `<div class="verdict ${v.cls}"><span class="vicon" aria-hidden="true">${v.icon}</span><div><div class="vtitle">${v.title}</div><div class="vbody">${v.body}</div></div></div>`;
-
-  const status = (cls)=> ({ good:'<span class="status good">✓ Healthy</span>', warn:'<span class="status warn">! Watch</span>', bad:'<span class="status bad">✕ Problem</span>' })[cls];
-  const checks = [
-    { label:'Click-only ROAS · last 3 months', val:xFmt(cR), cls: cR >= be ? 'good' : cR >= be * .6 ? 'warn' : 'bad',
-      note:`Clicked sales returned ${money(t.revenueClick)} on ${money(t.spend)} of spend. Break-even is ${be.toFixed(1)}×.` },
-    { label:'Meta ROAS incl. view-through · last 3 months', val:xFmt(mR), cls: mR >= be ? (t.revenueView / (t.revenue || 1) > .5 ? 'warn' : 'good') : 'bad',
-      note:`What Meta reports. ${pctFmt(t.revenue ? t.revenueView / t.revenue : null)} of it is view-through.` },
-    { label:'View-through that must be real to break even', val:pctFmt(viewNeeded), cls: viewNeeded === null || viewNeeded <= 0 ? 'good' : viewNeeded <= .5 ? 'warn' : 'bad',
-      note:'Share of the view-through sales Meta claims that would need to be truly caused by the ads.' },
-    { label:'Cost per clicked sale · last 3 months', val: cpcs ? money(cpcs) : '—', cls: !cpcs || !beCpa ? 'warn' : cpcs <= beCpa ? 'good' : cpcs <= beCpa * 2 ? 'warn' : 'bad',
-      note: beCpa ? `Break-even ≈ ${money(beCpa)} (average clicked order ${money(clickAov)} × ${Math.round(m*100)}% margin).` : 'No clicked sales to compare.' },
-    { label:`CPM · ${l1Name}`, val: l1 ? money2(l1.cpm) : '—', cls: cpmChange === null ? 'warn' : cpmChange <= .15 ? 'good' : cpmChange <= .4 ? 'warn' : 'bad',
-      note: medCpm ? `Cost to show ads 1,000 times. ${cpmChange >= 0 ? '+' : '−'}${Math.abs(Math.round(cpmChange*100))}% vs the typical ${money2(medCpm)} over the prior months.` : '' },
-    { label:`Frequency · ${l1Name}`, val: l1 ? l1.frequency.toFixed(2) : '—', cls: !l1 ? 'warn' : l1.frequency < 2.5 ? 'good' : l1.frequency < 4 ? 'warn' : 'bad',
-      note:`Average times each person saw the ads that month (${l1 ? l1.reach.toLocaleString() : '—'} people). Above ~3, you're paying to re-show the same people.` },
-    { label:`Clicks that reached the site · ${l1Name}`, val:pctFmt(lpvRate), cls: lpvRate === null ? 'warn' : lpvRate >= .9 ? 'good' : lpvRate >= .75 ? 'warn' : 'bad',
-      note:'Ad clicks that turned into a loaded landing page. Below ~90% points to slow pages or accidental clicks.' },
+  const tiles = [
+    { label:'Click-only ROAS · last 3 months', val:xFmt(clickRoas(t)), note:`${money(t.revenueClick)} from clicked sales on ${money(t.spend)} spend.` },
+    { label:'Meta ROAS incl. view-through · last 3 months', val:xFmt(metaRoas(t)), note:`${money(t.revenue)} Meta-credited revenue; ${pctFmt(t.revenue ? t.revenueView / t.revenue : null)} of it view-through.` },
+    { label:'Sales · last 3 months', val:t.purchases.toLocaleString(), note:`${t.purchasesClick} from clicks · ${t.purchasesView} view-through.` },
+    { label:'Cost per clicked sale · last 3 months', val: cpcs ? money(cpcs) : '—', note: clickAov ? `Average clicked order ${money(clickAov)}.` : 'No clicked sales.' },
+    { label:`CPM · ${l1Name}`, val: l1 ? money2(l1.cpm) : '—',
+      note: medCpm ? `Cost per 1,000 impressions. Prior-month median ${money2(medCpm)} (${cpmChange >= 0 ? '+' : '−'}${Math.abs(Math.round(cpmChange*100))}%).` : 'Cost per 1,000 impressions.' },
+    { label:`Frequency · ${l1Name}`, val: l1 ? l1.frequency.toFixed(2) : '—', note:`Average times each person saw the ads; ${l1 ? l1.reach.toLocaleString() : '—'} people reached.` },
+    { label:`Clicks that reached the site · ${l1Name}`, val:pctFmt(lpvRate), note:'Landing page views ÷ link clicks.' },
   ];
-  document.getElementById('paidChecks').innerHTML = '<div class="checks">' + checks.map(c=>
-    `<div class="check"><div class="ctop"><span class="clabel">${c.label}</span>${status(c.cls)}</div><div class="cval">${c.val}</div><div class="cnote">${c.note}</div></div>`).join('') + '</div>';
+  document.getElementById('paidChecks').innerHTML = '<div class="checks">' + tiles.map(c=>
+    `<div class="check"><div class="clabel">${c.label}</div><div class="cval">${c.val}</div><div class="cnote">${c.note}</div></div>`).join('') + '</div>';
 }
 
-/* ---- chart: Meta-credited revenue per month, clicked vs view-through, against break-even ---- */
+/* ---- chart: Meta-credited revenue per month, clicked vs view-through ---- */
 function niceStep(max, ticks){
   const raw = max / ticks, mag = Math.pow(10, Math.floor(Math.log10(raw)));
   const n = raw / mag;
@@ -2171,22 +2042,20 @@ function renderPaidChart(months){
   const wrap = document.getElementById('paidChart');
   const tip = document.getElementById('paidChartTip');
   if(tip.parentElement !== wrap) wrap.appendChild(tip);
-  const m = marginFrac();
   document.getElementById('paidChartLegend').innerHTML =
-    `<span><i style="background:${CLICK_COLOR}"></i>Clicked sales</span><span><i style="background:${VIEW_COLOR}"></i>View-through sales</span><span><i class="line"></i>Break-even (spend ÷ ${Math.round(m*100)}% margin)</span>`;
+    `<span><i style="background:${CLICK_COLOR}"></i>Clicked sales</span><span><i style="background:${VIEW_COLOR}"></i>View-through sales</span>`;
   document.getElementById('paidHistRange').textContent =
     `${mLabel(months[0].month)} – ${mLabel(months[months.length-1].month)} · Meta-credited revenue`;
 
   const W = Math.max(wrap.clientWidth || 700, 320), H = 230, padL = 46, padR = 8, padT = 18, padB = 26;
   const tops = months.map(r=> (r.revenueClick || 0) + (r.revenueView || 0));
-  const bes = months.map(r=> r.spend / m);
   const sorted = [...tops].sort((a,b)=> b-a);
   // One freak month (e.g. a few very large orders) would flatten every other bar — clip it and label it.
-  const cap = sorted[0] > sorted[1] * 2 ? Math.max(sorted[1] * 1.15, Math.max(...bes) * 1.1) : Math.max(sorted[0], ...bes) * 1.08;
+  const cap = sorted[0] > sorted[1] * 2 ? sorted[1] * 1.15 : sorted[0] * 1.08;
   const step = niceStep(cap, 4), yMax = Math.ceil(cap / step) * step;
   const y = v => padT + (H - padT - padB) * (1 - Math.min(v, yMax) / yMax);
   const slot = (W - padL - padR) / months.length, bw = Math.min(30, slot * .58);
-  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Monthly Meta-credited revenue, clicked versus view-through, compared with break-even">`;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Monthly Meta-credited revenue, clicked versus view-through">`;
   for(let v = 0; v <= yMax + 1e-9; v += step){
     svg += `<line x1="${padL}" x2="${W - padR}" y1="${y(v)}" y2="${y(v)}" stroke="#f3d2e0" stroke-width="1"/>`;
     svg += `<text x="${padL - 6}" y="${y(v) + 3.5}" text-anchor="end" font-size="10.5" fill="#8a7a76" style="font-variant-numeric:tabular-nums">${kFmt(v)}</text>`;
@@ -2208,8 +2077,6 @@ function renderPaidChart(months){
       svg += `<path d="${topRoundedRect(x, yt, bw, yb - yt, 4)}" fill="${VIEW_COLOR}" opacity="${op}"/>`;
     }
     if(clipped) svg += `<text x="${x + bw / 2}" y="${padT - 5}" text-anchor="middle" font-size="10.5" font-weight="600" fill="#2b1f1c">↑ ${kFmt(c + vv)}</text>`;
-    const yBe = y(bes[i]);
-    svg += `<line x1="${x - 5}" x2="${x + bw + 5}" y1="${yBe}" y2="${yBe}" stroke="#2b1f1c" stroke-width="2" stroke-dasharray="4 3" opacity="${partial ? .5 : 1}"/>`;
     const d = new Date(r.month + '-01T00:00:00');
     const lbl = d.toLocaleDateString(undefined, { month:'short' }) + (d.getMonth() === 0 ? ` '${String(d.getFullYear()).slice(2)}` : '') + (partial ? '*' : '');
     svg += `<text x="${x + bw / 2}" y="${H - 8}" text-anchor="middle" font-size="10.5" fill="#8a7a76">${lbl}</text>`;
@@ -2225,7 +2092,6 @@ function renderPaidChart(months){
     tip.innerHTML = `<b>${mLabel(r.month, { month:'long', year:'numeric' })}${r.month >= thisMonthKey ? ' (so far)' : ''}</b>
       <div class="trow"><i style="background:${CLICK_COLOR}"></i>Clicked sales<span>${money(t.revenueClick)} · ${t.purchasesClick}</span></div>
       <div class="trow"><i style="background:${VIEW_COLOR}"></i>View-through<span>${money(t.revenueView)} · ${t.purchasesView}</span></div>
-      <div class="trow"><i class="line"></i>Break-even<span>${money(bes[i])}</span></div>
       <div class="trow">Spend<span>${money(t.spend)}</span></div>
       <div class="trow">Click-only ROAS<span>${xFmt(clickRoas(t))}</span></div>`;
     tip.style.display = 'block';
@@ -2248,7 +2114,7 @@ function renderPaidMonthTable(months){
   document.getElementById('paidHistRows').innerHTML = [...months].reverse().map(r=>{
     const partial = r.month >= thisMonthKey;
     return `<tr><td>${mLabel(r.month)}${partial ? ' <span class="sub">(so far)</span>' : ''}</td><td>${money(r.spend)}</td><td>${money(r.revenue)}</td>
-      <td>${xFmt(metaRoas(r))}</td><td>${roasCell(clickRoas(r))}</td><td>${r.purchases} <span class="sub">(${r.purchasesClick} / ${r.purchasesView})</span></td>
+      <td>${xFmt(metaRoas(r))}</td><td>${xFmt(clickRoas(r))}</td><td>${r.purchases} <span class="sub">(${r.purchasesClick} / ${r.purchasesView})</span></td>
       <td>${costPerClickSale(r) ? money(costPerClickSale(r)) : '—'}</td><td>${money2(r.cpm)}</td><td>${r.ctr.toFixed(2)}%</td><td>${r.frequency.toFixed(2)}</td><td>${r.reach.toLocaleString()}</td></tr>`;
   }).join('');
 }
@@ -2268,11 +2134,11 @@ function renderPaidCampaigns(campaigns){
     const active = c.status === 'ACTIVE';
     tr.innerHTML = `<td><span class="caret">▸</span> ${esc(c.name)}<br><span class="sub" style="font-size:11.5px;margin-left:16px">${span}${c.dailyBudget ? ` · $${c.dailyBudget}/day` : ''}</span></td>
       <td><span class="status-pill" style="${active ? '' : 'background:var(--cream-2);color:var(--muted)'}">${active ? 'Active' : (c.status || '').charAt(0) + (c.status || '').slice(1).toLowerCase()}</span></td>
-      <td>${money(t.spend)}</td><td>${xFmt(metaRoas(t))}</td><td>${roasCell(clickRoas(t))}</td>
+      <td>${money(t.spend)}</td><td>${xFmt(metaRoas(t))}</td><td>${xFmt(clickRoas(t))}</td>
       <td>${t.purchases} <span class="sub">(${t.purchasesClick} / ${t.purchasesView})</span></td><td>${costPerClickSale(t) ? money(costPerClickSale(t)) : '—'}</td>`;
     const subRows = months.map(r=>{
       const s = document.createElement('tr'); s.className = 'camp-month'; s.hidden = true;
-      s.innerHTML = `<td>${mLabel(r.month)}</td><td></td><td>${money(r.spend)}</td><td>${xFmt(metaRoas(r))}</td><td>${roasCell(clickRoas(r))}</td>
+      s.innerHTML = `<td>${mLabel(r.month)}</td><td></td><td>${money(r.spend)}</td><td>${xFmt(metaRoas(r))}</td><td>${xFmt(clickRoas(r))}</td>
         <td>${r.purchases} (${r.purchasesClick} / ${r.purchasesView})</td><td>${costPerClickSale(r) ? money(costPerClickSale(r)) : '—'}</td>`;
       return s;
     });
@@ -2293,7 +2159,7 @@ function renderPaidAds(ads){
   body.innerHTML = Object.entries(by).map(([name, v])=> ({ name, campaign: v.campaign, t: sumRows(v.rows) }))
     .filter(x=> x.t.spend >= 1).sort((a,b)=> b.t.spend - a.t.spend).slice(0, 12)
     .map(({ name, campaign, t })=> `<tr><td>${esc(name)}<br><span class="sub" style="font-size:11.5px">${esc(campaign)}</span></td><td>${money(t.spend)}</td>
-      <td>${t.purchases} <span class="sub">(${t.purchasesClick} / ${t.purchasesView})</span></td><td>${roasCell(clickRoas(t))}</td>
+      <td>${t.purchases} <span class="sub">(${t.purchasesClick} / ${t.purchasesView})</span></td><td>${xFmt(clickRoas(t))}</td>
       <td>${t.impressions ? (t.linkClicks / t.impressions * 100).toFixed(2) + '%' : '—'}</td><td>${t.impressions ? money2(t.spend / t.impressions * 1000) : '—'}</td><td>${t.addToCart}</td></tr>`).join('');
 }
 
@@ -2302,7 +2168,7 @@ const PLACEMENT_NAMES = { 'facebook/feed':'Facebook Feed', 'instagram/feed':'Ins
   'facebook/marketplace':'Facebook Marketplace', 'instagram/instagram_explore':'Instagram Explore', 'instagram/instagram_explore_grid_home':'Instagram Explore',
   'facebook/instream_video':'Facebook In-stream video', 'audience_network/an_classic':'Audience Network', 'threads/threads_feed':'Threads' };
 function renderPaidAudience(ageGender, placements){
-  const rowsHtml = (groups)=> groups.map(([label, t])=> `<tr><td>${esc(label)}</td><td>${money(t.spend)}</td><td>${t.purchasesClick}</td><td>${roasCell(clickRoas(t))}</td>
+  const rowsHtml = (groups)=> groups.map(([label, t])=> `<tr><td>${esc(label)}</td><td>${money(t.spend)}</td><td>${t.purchasesClick}</td><td>${xFmt(clickRoas(t))}</td>
     <td>${t.impressions ? (t.linkClicks / t.impressions * 100).toFixed(2) + '%' : '—'}</td></tr>`).join('');
   const ages = {};
   ageGender.forEach(r=>{ (ages[r.age] = ages[r.age] || []).push(r); });
@@ -2321,32 +2187,12 @@ function renderPaidAudience(ageGender, placements){
   document.getElementById('paidPlacementRows').innerHTML = rowsHtml(big) || '<tr><td colspan="5" class="placeholder-note">No data.</td></tr>';
 }
 
-/* ---- margin setting (shared, saved to Notion like the notes boxes) ---- */
-(function(){
-  const input = document.getElementById('paidMargin');
-  let t;
-  input.addEventListener('input', ()=>{
-    const v = Number(input.value);
-    if(!(v >= 10 && v <= 90)) return;
-    paidMargin = v;
-    renderPaidHistory();
-    clearTimeout(t);
-    t = setTimeout(()=> withPasscode(async (passcode)=>{
-      try{
-        await api('/api/creative-notes', { passcode, name: PAID_MARGIN_KEY, notes: String(v) });
-        notesCache[PAID_MARGIN_KEY] = String(v); setPasscode(passcode);
-        flashSaved(document.getElementById('paidMarginSave'));
-      }catch(err){ console.error(err); showError(err.message || 'Could not save margin'); }
-    }), 900);
-  });
-})();
-
 /* ================= init ================= */
 loadEvents();
 loadWeekItems();
 loadActions();
 loadMetaStats();
-notesReady = loadNotesBoxes();
+loadNotesBoxes();
 loadShopify();
 loadKlaviyoStats();
 loadUpdates();
