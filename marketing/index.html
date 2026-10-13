@@ -275,7 +275,9 @@
   .checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
   .check{border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
   .check .clabel{font-size:12px;color:var(--muted);font-weight:600}
-  .check .cval{font-family:var(--serif);font-size:22px;font-weight:600;margin:4px 0 2px}
+  .check .cval-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:4px 0 2px}
+  .check .cval{font-family:var(--serif);font-size:22px;font-weight:600}
+  .check .cprev{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
   .check .cnote{font-size:12px;color:var(--muted);line-height:1.4}
   .chart-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:8px}
   .chart-legend span{display:inline-flex;align-items:center;gap:6px}
@@ -472,7 +474,7 @@
     <div class="card" id="paidHealthCard">
       <div class="card-head"><h2>Key numbers</h2><span class="sub" id="paidHealthSub">Loading 12 months of Meta data…</span></div>
       <div id="paidChecks"></div>
-      <p class="sub" style="margin-top:12px">"Clicked sales" = someone clicked an ad and bought within 7 days. "View-through" = someone bought within 1 day of an ad appearing on screen, without clicking. Meta's ROAS counts both.</p>
+      <p class="sub" style="margin-top:12px">Large figure = this month so far; grey figure = last month in full. "Clicked sales" = someone clicked an ad and bought within 7 days. "View-through" = someone bought within 1 day of an ad appearing on screen, without clicking. Meta's ROAS counts both.</p>
     </div>
 
     <div class="card">
@@ -2003,33 +2005,45 @@ function renderPaidHistory(){
   renderPaidAudience(h.ageGender || [], h.placements || []);
 }
 
-/* ---- key numbers (last 3 full months) ---- */
+/* ---- key numbers: this month so far vs last month ---- */
 function renderPaidHealth(h){
-  const full = h.months.filter(r=> r.month < thisMonthKey);
-  const l3rows = full.slice(-3), l1 = full[full.length - 1];
-  const t = sumRows(l3rows);
-  const clickAov = t.purchasesClick ? t.revenueClick / t.purchasesClick : null;
-  const cpcs = costPerClickSale(t);
-  const priorCpm = full.slice(0, -1).map(r=> r.cpm).filter(Boolean).sort((a,b)=> a-b);
-  const medCpm = priorCpm.length ? priorCpm[Math.floor(priorCpm.length / 2)] : null;
-  const cpmChange = medCpm && l1 ? l1.cpm / medCpm - 1 : null;
-  const lpvRate = l1 && l1.linkClicks ? l1.landingPageViews / l1.linkClicks : null;
-  const range = l3rows.length ? `${mLabel(l3rows[0].month, { month:'short' })}–${mLabel(l3rows[l3rows.length-1].month)}` : '';
-  const l1Name = l1 ? mLabel(l1.month, { month:'long' }) : '';
-  document.getElementById('paidHealthSub').textContent = `Last 3 full months (${range}) unless noted`;
+  const cur = h.months.find(r=> r.month === thisMonthKey);
+  const prevKey = shiftMonth(thisMonthKey, -1);
+  const prev = h.months.find(r=> r.month === prevKey);
+  const days = r => r ? Math.round((new Date(r.end + 'T00:00:00') - new Date(r.start + 'T00:00:00')) / 864e5) + 1 : 0;
+  const curName = monthLabel(thisMonthKey, { month:'long' }), prevShort = monthLabel(prevKey, { month:'short' });
+  const dShort = iso => new Date(iso + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric' });
+  document.getElementById('paidHealthSub').textContent = cur
+    ? `${curName} so far (${dShort(cur.start)} – ${dShort(cur.end)}) vs ${monthLabel(prevKey, { month:'long' })}`
+    : `No spend yet this month · ${monthLabel(prevKey, { month:'long' })} shown for reference`;
+
+  const z = { spend:0, revenue:0, revenueClick:0, revenueView:0, purchases:0, purchasesClick:0, purchasesView:0, cpm:0, frequency:0, reach:0, linkClicks:0, landingPageViews:0 };
+  const c = cur || z, pv = prev || z;
+  const perDay = (n, r) => days(r) ? n / days(r) : null;
+  const lpv = r => r && r.linkClicks ? r.landingPageViews / r.linkClicks : null;
+  const aov = r => r && r.purchasesClick ? r.revenueClick / r.purchasesClick : null;
+  const num1 = n => n === null || n === undefined || !isFinite(n) ? '—' : n.toFixed(1);
 
   const tiles = [
-    { label:'Click-only ROAS · last 3 months', val:xFmt(clickRoas(t)), note:`${money(t.revenueClick)} from clicked sales on ${money(t.spend)} spend.` },
-    { label:'Meta ROAS incl. view-through · last 3 months', val:xFmt(metaRoas(t)), note:`${money(t.revenue)} Meta-credited revenue; ${pctFmt(t.revenue ? t.revenueView / t.revenue : null)} of it view-through.` },
-    { label:'Sales · last 3 months', val:t.purchases.toLocaleString(), note:`${t.purchasesClick} from clicks · ${t.purchasesView} view-through.` },
-    { label:'Cost per clicked sale · last 3 months', val: cpcs ? money(cpcs) : '—', note: clickAov ? `Average clicked order ${money(clickAov)}.` : 'No clicked sales.' },
-    { label:`CPM · ${l1Name}`, val: l1 ? money2(l1.cpm) : '—',
-      note: medCpm ? `Cost per 1,000 impressions. Prior-month median ${money2(medCpm)} (${cpmChange >= 0 ? '+' : '−'}${Math.abs(Math.round(cpmChange*100))}%).` : 'Cost per 1,000 impressions.' },
-    { label:`Frequency · ${l1Name}`, val: l1 ? l1.frequency.toFixed(2) : '—', note:`Average times each person saw the ads; ${l1 ? l1.reach.toLocaleString() : '—'} people reached.` },
-    { label:`Clicks that reached the site · ${l1Name}`, val:pctFmt(lpvRate), note:'Landing page views ÷ link clicks.' },
+    { label:'Spend', val:money(c.spend), prev:money(pv.spend),
+      note:`${money(perDay(c.spend, cur))}/day vs ${money(perDay(pv.spend, prev))}/day in ${prevShort}.` },
+    { label:'Click-only ROAS', val:xFmt(clickRoas(c)), prev:xFmt(clickRoas(pv)),
+      note:`${money(c.revenueClick)} from clicked sales (${prevShort}: ${money(pv.revenueClick)}).` },
+    { label:'Meta ROAS incl. view-through', val:xFmt(metaRoas(c)), prev:xFmt(metaRoas(pv)),
+      note:`${money(c.revenue)} Meta-credited revenue; ${pctFmt(c.revenue ? c.revenueView / c.revenue : null)} view-through (${prevShort}: ${pctFmt(pv.revenue ? pv.revenueView / pv.revenue : null)}).` },
+    { label:'Sales', val:c.purchases.toLocaleString(), prev:pv.purchases.toLocaleString(),
+      note:`${c.purchasesClick} from clicks · ${c.purchasesView} view-through. ${num1(perDay(c.purchases, cur))}/day vs ${num1(perDay(pv.purchases, prev))}/day.` },
+    { label:'Cost per clicked sale', val: costPerClickSale(c) ? money(costPerClickSale(c)) : '—', prev: costPerClickSale(pv) ? money(costPerClickSale(pv)) : '—',
+      note:`Average clicked order ${aov(c) ? money(aov(c)) : '—'} (${prevShort}: ${aov(pv) ? money(aov(pv)) : '—'}).` },
+    { label:'CPM', val:money2(c.cpm), prev:money2(pv.cpm), note:'Cost per 1,000 impressions.' },
+    { label:'Frequency', val:c.frequency.toFixed(2), prev:pv.frequency.toFixed(2),
+      note:`Average times each person saw the ads; ${c.reach.toLocaleString()} people reached (${prevShort}: ${pv.reach.toLocaleString()}).` },
+    { label:'Clicks that reached the site', val:pctFmt(lpv(c)), prev:pctFmt(lpv(pv)), note:'Landing page views ÷ link clicks.' },
   ];
-  document.getElementById('paidChecks').innerHTML = '<div class="checks">' + tiles.map(c=>
-    `<div class="check"><div class="clabel">${c.label}</div><div class="cval">${c.val}</div><div class="cnote">${c.note}</div></div>`).join('') + '</div>';
+  document.getElementById('paidChecks').innerHTML = '<div class="checks">' + tiles.map(t=>
+    `<div class="check"><div class="clabel">${t.label}</div>
+      <div class="cval-row"><span class="cval">${t.val}</span><span class="cprev">${prevShort} ${t.prev}</span></div>
+      <div class="cnote">${t.note}</div></div>`).join('') + '</div>';
 }
 
 /* ---- chart: Meta-credited revenue per month, clicked vs view-through ---- */
