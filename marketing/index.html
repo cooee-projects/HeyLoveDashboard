@@ -272,7 +272,7 @@
   .simple-list .amt{color:var(--muted);white-space:nowrap;font-size:13px}
 
   /* ---------- paid: month-by-month history ---------- */
-  .checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+  .checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
   .check{border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
   .check .clabel{font-size:12px;color:var(--muted);font-weight:600}
   .check .cval-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:4px 0 2px}
@@ -533,8 +533,8 @@
       <div class="card-head"><h2>Campaigns, month by month</h2><span class="sub">Click a campaign to see each month</span></div>
       <div style="overflow-x:auto">
         <table class="simple hist-table">
-          <thead><tr><th>Campaign</th><th>Status</th><th>Spend</th><th>Meta ROAS</th><th>Click-only ROAS</th><th>Sales (click / view)</th><th>Cost per clicked sale</th></tr></thead>
-          <tbody id="paidCampaignRows"><tr><td colspan="7" class="placeholder-note">Loading…</td></tr></tbody>
+          <thead><tr><th>Campaign</th><th>Objective</th><th>Status</th><th>Spend</th><th>Meta ROAS</th><th>Click-only ROAS</th><th>Sales (click / view)</th><th>Cost per clicked sale</th></tr></thead>
+          <tbody id="paidCampaignRows"><tr><td colspan="8" class="placeholder-note">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -2027,10 +2027,12 @@ function renderPaidHealth(h){
   const tiles = [
     { label:'Spend', val:money(c.spend), prev:money(pv.spend),
       note:`${money(perDay(c.spend, cur))}/day vs ${money(perDay(pv.spend, prev))}/day in ${prevShort}.` },
+    { label:'Revenue (Meta-credited)', val:money(c.revenue), prev:money(pv.revenue),
+      note:`${money(c.revenueClick)} clicked · ${money(c.revenueView)} view-through (${prevShort}: ${money(pv.revenueClick)} · ${money(pv.revenueView)}).` },
     { label:'Click-only ROAS', val:xFmt(clickRoas(c)), prev:xFmt(clickRoas(pv)),
       note:`${money(c.revenueClick)} from clicked sales (${prevShort}: ${money(pv.revenueClick)}).` },
     { label:'Meta ROAS incl. view-through', val:xFmt(metaRoas(c)), prev:xFmt(metaRoas(pv)),
-      note:`${money(c.revenue)} Meta-credited revenue; ${pctFmt(c.revenue ? c.revenueView / c.revenue : null)} view-through (${prevShort}: ${pctFmt(pv.revenue ? pv.revenueView / pv.revenue : null)}).` },
+      note:`Revenue ÷ spend; ${pctFmt(c.revenue ? c.revenueView / c.revenue : null)} of revenue is view-through (${prevShort}: ${pctFmt(pv.revenue ? pv.revenueView / pv.revenue : null)}).` },
     { label:'Sales', val:c.purchases.toLocaleString(), prev:pv.purchases.toLocaleString(),
       note:`${c.purchasesClick} from clicks · ${c.purchasesView} view-through. ${num1(perDay(c.purchases, cur))}/day vs ${num1(perDay(pv.purchases, prev))}/day.` },
     { label:'Cost per clicked sale', val: costPerClickSale(c) ? money(costPerClickSale(c)) : '—', prev: costPerClickSale(pv) ? money(costPerClickSale(pv)) : '—',
@@ -2140,9 +2142,16 @@ function renderPaidMonthTable(months){
   }).join('');
 }
 
+// Meta objective codes -> the names Ads Manager shows (older codes map to their current equivalent)
+const OBJECTIVE_NAMES = { OUTCOME_SALES:'Sales', OUTCOME_TRAFFIC:'Traffic', OUTCOME_ENGAGEMENT:'Engagement', OUTCOME_AWARENESS:'Awareness',
+  OUTCOME_LEADS:'Leads', OUTCOME_APP_PROMOTION:'App promotion', CONVERSIONS:'Sales', PRODUCT_CATALOG_SALES:'Sales', LINK_CLICKS:'Traffic',
+  POST_ENGAGEMENT:'Engagement', PAGE_LIKES:'Engagement', EVENT_RESPONSES:'Engagement', VIDEO_VIEWS:'Engagement', MESSAGES:'Engagement',
+  REACH:'Awareness', BRAND_AWARENESS:'Awareness', LEAD_GENERATION:'Leads', APP_INSTALLS:'App promotion' };
+const objectiveName = code => OBJECTIVE_NAMES[code] || (code ? code.replace(/^OUTCOME_/, '').toLowerCase().replace(/_/g, ' ').replace(/^./, ch => ch.toUpperCase()) : '—');
+
 function renderPaidCampaigns(campaigns){
   const body = document.getElementById('paidCampaignRows');
-  if(!campaigns.length){ body.innerHTML = '<tr><td colspan="7" class="placeholder-note">No campaigns in this period.</td></tr>'; return; }
+  if(!campaigns.length){ body.innerHTML = '<tr><td colspan="8" class="placeholder-note">No campaigns in this period.</td></tr>'; return; }
   const latest = c => c.months.map(x=> x.month).sort().pop();
   const list = [...campaigns].sort((a,b)=> latest(b).localeCompare(latest(a)) || sumRows(b.months).spend - sumRows(a.months).spend);
   body.innerHTML = '';
@@ -2154,12 +2163,13 @@ function renderPaidCampaigns(campaigns){
     const tr = document.createElement('tr'); tr.className = 'camp-row'; tr.tabIndex = 0;
     const active = c.status === 'ACTIVE';
     tr.innerHTML = `<td><span class="caret">▸</span> ${esc(c.name)}<br><span class="sub" style="font-size:11.5px;margin-left:16px">${span}${c.dailyBudget ? ` · $${c.dailyBudget}/day` : ''}</span></td>
+      <td>${esc(objectiveName(c.objective))}</td>
       <td><span class="status-pill" style="${active ? '' : 'background:var(--cream-2);color:var(--muted)'}">${active ? 'Active' : (c.status || '').charAt(0) + (c.status || '').slice(1).toLowerCase()}</span></td>
       <td>${money(t.spend)}</td><td>${xFmt(metaRoas(t))}</td><td>${xFmt(clickRoas(t))}</td>
       <td>${t.purchases} <span class="sub">(${t.purchasesClick} / ${t.purchasesView})</span></td><td>${costPerClickSale(t) ? money(costPerClickSale(t)) : '—'}</td>`;
     const subRows = months.map(r=>{
       const s = document.createElement('tr'); s.className = 'camp-month'; s.hidden = true;
-      s.innerHTML = `<td>${mLabel(r.month)}</td><td></td><td>${money(r.spend)}</td><td>${xFmt(metaRoas(r))}</td><td>${xFmt(clickRoas(r))}</td>
+      s.innerHTML = `<td>${mLabel(r.month)}</td><td></td><td></td><td>${money(r.spend)}</td><td>${xFmt(metaRoas(r))}</td><td>${xFmt(clickRoas(r))}</td>
         <td>${r.purchases} (${r.purchasesClick} / ${r.purchasesView})</td><td>${costPerClickSale(r) ? money(costPerClickSale(r)) : '—'}</td>`;
       return s;
     });
