@@ -504,11 +504,13 @@
     </div>
 
     <div class="card">
-      <div class="card-head"><h2>Current Campaigns</h2></div>
+      <div class="card-head"><h2>Current Campaigns</h2><span class="sub" id="campaignRange">Last 15 days</span></div>
+      <div style="overflow-x:auto">
       <table class="simple">
-        <thead><tr><th>Campaign</th><th>Status</th><th>Spend</th><th>ROAS</th><th>Purchases</th></tr></thead>
-        <tbody id="campaignRows"><tr><td colspan="5" class="placeholder-note">Loading…</td></tr></tbody>
+        <thead><tr><th>Campaign</th><th>Status</th><th>Spend</th><th>Reach</th><th>Clicks</th><th>ROAS</th><th>Purchases</th></tr></thead>
+        <tbody id="campaignRows"><tr><td colspan="7" class="placeholder-note">Loading…</td></tr></tbody>
       </table>
+      </div>
     </div>
 
     <div class="card">
@@ -1467,11 +1469,16 @@ async function loadMetaStats(){
   // Campaigns
   const campaignRows = document.getElementById('campaignRows');
   if(data.campaigns && !data.campaigns.error){
-    campaignRows.innerHTML = data.campaigns.length ? data.campaigns.map(c=>
-      `<tr><td>${c.name}</td><td><span class="status-pill">${c.status}</span></td><td>${money(c.spend)}</td><td>${roasFmt(c.roas)}</td><td>${c.purchases}</td></tr>`
-    ).join('') : '<tr><td colspan="5" class="placeholder-note">No campaigns found.</td></tr>';
+    const { range, rows } = data.campaigns;
+    if(range){
+      const d = iso => new Date(iso + 'T00:00:00').toLocaleDateString(undefined, { month:'short', day:'numeric' });
+      document.getElementById('campaignRange').textContent = `Last 15 days · ${d(range.since)} – ${d(range.until)}`;
+    }
+    campaignRows.innerHTML = rows.length ? rows.map(c=>
+      `<tr><td>${esc(c.name)}</td><td><span class="status-pill">${c.status}</span></td><td>${money(c.spend)}</td><td>${c.reach.toLocaleString()}</td><td>${c.clicks.toLocaleString()}</td><td>${roasFmt(c.roas)}</td><td>${c.purchases}</td></tr>`
+    ).join('') : '<tr><td colspan="7" class="placeholder-note">No campaigns ran in the last 15 days.</td></tr>';
   } else {
-    campaignRows.innerHTML = `<tr><td colspan="5" class="placeholder-note">Unavailable: ${data.campaigns?.error || 'unknown error'}</td></tr>`;
+    campaignRows.innerHTML = `<tr><td colspan="7" class="placeholder-note">Unavailable: ${data.campaigns?.error || 'unknown error'}</td></tr>`;
   }
 
   // Top creatives (merged with notes below)

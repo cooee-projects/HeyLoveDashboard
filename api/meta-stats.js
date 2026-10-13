@@ -105,24 +105,37 @@ async function getDailyBudget() {
   return { budget, spentToday, remaining: Math.max(budget - spentToday, 0) };
 }
 
+// Last 15 days including today, in the ad account's timezone (Meta reads dates that way).
+const CAMPAIGN_WINDOW_DAYS = 15;
+function accountDate(offsetDays = 0) {
+  const d = new Date(Date.now() - offsetDays * 864e5);
+  return new Intl.DateTimeFormat('en-CA', { timeZone: process.env.META_TIMEZONE || 'America/Chicago' }).format(d); // YYYY-MM-DD
+}
+
 async function getCampaigns() {
+  const range = { since: accountDate(CAMPAIGN_WINDOW_DAYS - 1), until: accountDate(0) };
   const [meta, insights] = await Promise.all([
     fb(`/${accountId()}/campaigns`, { fields: 'name,effective_status', limit: '50' }),
     fb(`/${accountId()}/insights`, {
       level: 'campaign',
-      date_preset: 'this_month',
-      fields: 'campaign_id,campaign_name,spend,purchase_roas,actions',
+      time_range: range,
+      fields: 'campaign_id,campaign_name,spend,reach,clicks,purchase_roas,actions',
       limit: '50',
     }),
   ]);
   const statusById = Object.fromEntries((meta.data || []).map((c) => [c.id, c.effective_status]));
-  return (insights.data || []).map((row) => ({
-    name: row.campaign_name,
-    status: statusById[row.campaign_id] || 'UNKNOWN',
-    spend: Number(row.spend) || 0,
-    roas: pickRoas(row.purchase_roas) ?? 0,
-    purchases: pickAction(row.actions, ['omni_purchase', 'purchase']),
-  }));
+  return {
+    range,
+    rows: (insights.data || []).map((row) => ({
+      name: row.campaign_name,
+      status: statusById[row.campaign_id] || 'UNKNOWN',
+      spend: Number(row.spend) || 0,
+      reach: Number(row.reach) || 0,
+      clicks: Number(row.clicks) || 0,
+      roas: pickRoas(row.purchase_roas) ?? 0,
+      purchases: pickAction(row.actions, ['omni_purchase', 'purchase']),
+    })),
+  };
 }
 
 async function getTopCreatives() {
