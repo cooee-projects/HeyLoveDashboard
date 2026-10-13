@@ -272,7 +272,7 @@
   .simple-list .amt{color:var(--muted);white-space:nowrap;font-size:13px}
 
   /* ---------- paid: month-by-month history ---------- */
-  .checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+  .checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
   .check{border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:0}
   .check .clabel{font-size:12px;color:var(--muted);font-weight:600}
   .check .cval-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:4px 0 2px}
@@ -484,8 +484,8 @@
       <div class="chart-tip" id="paidChartTip" role="status" aria-live="polite"></div>
       <div style="overflow-x:auto;margin-top:14px">
         <table class="simple hist-table">
-          <thead><tr><th>Month</th><th>Spend</th><th>Meta revenue</th><th>Meta ROAS</th><th>Click-only ROAS</th><th>Sales (click / view)</th><th>Cost per clicked sale</th><th>CPM</th><th>CTR</th><th>Frequency</th><th>Reach</th></tr></thead>
-          <tbody id="paidHistRows"><tr><td colspan="11" class="placeholder-note">Loading…</td></tr></tbody>
+          <thead><tr><th>Month</th><th>Spend</th><th>Meta revenue</th><th>Meta ROAS</th><th>Sales (click / view)</th><th>Cost per clicked sale</th><th>CPM</th><th>CTR</th><th>Frequency</th><th>Reach</th></tr></thead>
+          <tbody id="paidHistRows"><tr><td colspan="10" class="placeholder-note">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -533,8 +533,8 @@
       <div class="card-head"><h2>Campaigns, month by month</h2><span class="sub">Click a campaign to see each month</span></div>
       <div style="overflow-x:auto">
         <table class="simple hist-table">
-          <thead><tr><th>Campaign</th><th>Objective</th><th>Status</th><th>Spend</th><th>Meta ROAS</th><th>Click-only ROAS</th><th>Sales (click / view)</th><th>Cost per clicked sale</th></tr></thead>
-          <tbody id="paidCampaignRows"><tr><td colspan="8" class="placeholder-note">Loading…</td></tr></tbody>
+          <thead><tr><th>Campaign</th><th>Objective</th><th>Status</th><th>Spend</th><th>Meta ROAS</th><th>Sales (click / view)</th><th>Cost per clicked sale</th></tr></thead>
+          <tbody id="paidCampaignRows"><tr><td colspan="7" class="placeholder-note">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -543,8 +543,8 @@
       <div class="card-head"><h2>Ads</h2><span class="sub" id="paidAdsRange">Last 3 months</span></div>
       <div style="overflow-x:auto">
         <table class="simple hist-table">
-          <thead><tr><th>Ad</th><th>Spend</th><th>Sales (click / view)</th><th>Click-only ROAS</th><th>CTR</th><th>CPM</th><th>Add to carts</th></tr></thead>
-          <tbody id="paidAdRows"><tr><td colspan="7" class="placeholder-note">Loading…</td></tr></tbody>
+          <thead><tr><th>Ad</th><th>Spend</th><th>Sales (click / view)</th><th>CTR</th><th>CPM</th><th>Add to carts</th></tr></thead>
+          <tbody id="paidAdRows"><tr><td colspan="6" class="placeholder-note">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -553,15 +553,15 @@
       <div class="card">
         <div class="card-head"><h2>Who the ads reach</h2><span class="sub">Last 90 days · by age</span></div>
         <table class="simple hist-table">
-          <thead><tr><th>Age</th><th>Spend</th><th>Clicked sales</th><th>Click-only ROAS</th><th>CTR</th></tr></thead>
-          <tbody id="paidAgeRows"><tr><td colspan="5" class="placeholder-note">Loading…</td></tr></tbody>
+          <thead><tr><th>Age</th><th>Spend</th><th>Clicked sales</th><th>CTR</th></tr></thead>
+          <tbody id="paidAgeRows"><tr><td colspan="4" class="placeholder-note">Loading…</td></tr></tbody>
         </table>
       </div>
       <div class="card">
         <div class="card-head"><h2>Where the ads run</h2><span class="sub">Last 90 days · by placement</span></div>
         <table class="simple hist-table">
-          <thead><tr><th>Placement</th><th>Spend</th><th>Clicked sales</th><th>Click-only ROAS</th><th>CTR</th></tr></thead>
-          <tbody id="paidPlacementRows"><tr><td colspan="5" class="placeholder-note">Loading…</td></tr></tbody>
+          <thead><tr><th>Placement</th><th>Spend</th><th>Clicked sales</th><th>CTR</th></tr></thead>
+          <tbody id="paidPlacementRows"><tr><td colspan="4" class="placeholder-note">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1972,7 +1972,6 @@ function sumRows(rows){
   rows.forEach(r=> SUM_KEYS.forEach(k=> t[k] += Number(r[k]) || 0));
   return t;
 }
-const clickRoas = t => t.spend ? t.revenueClick / t.spend : null;
 const metaRoas = t => t.spend ? t.revenue / t.spend : null;
 const costPerClickSale = t => t.purchasesClick ? t.spend / t.purchasesClick : null;
 const mLabel = (m, opts = { month:'short', year:'numeric' }) => monthLabel(m, opts);
@@ -2029,8 +2028,6 @@ function renderPaidHealth(h){
       note:`${money(perDay(c.spend, cur))}/day vs ${money(perDay(pv.spend, prev))}/day in ${prevShort}.` },
     { label:'Revenue (Meta-credited)', val:money(c.revenue), prev:money(pv.revenue),
       note:`${money(c.revenueClick)} clicked · ${money(c.revenueView)} view-through (${prevShort}: ${money(pv.revenueClick)} · ${money(pv.revenueView)}).` },
-    { label:'Click-only ROAS', val:xFmt(clickRoas(c)), prev:xFmt(clickRoas(pv)),
-      note:`${money(c.revenueClick)} from clicked sales (${prevShort}: ${money(pv.revenueClick)}).` },
     { label:'Meta ROAS incl. view-through', val:xFmt(metaRoas(c)), prev:xFmt(metaRoas(pv)),
       note:`Revenue ÷ spend; ${pctFmt(c.revenue ? c.revenueView / c.revenue : null)} of revenue is view-through (${prevShort}: ${pctFmt(pv.revenue ? pv.revenueView / pv.revenue : null)}).` },
     { label:'Sales', val:c.purchases.toLocaleString(), prev:pv.purchases.toLocaleString(),
@@ -2115,8 +2112,7 @@ function renderPaidChart(months){
     tip.innerHTML = `<b>${mLabel(r.month, { month:'long', year:'numeric' })}${r.month >= thisMonthKey ? ' (so far)' : ''}</b>
       <div class="trow"><i style="background:${CLICK_COLOR}"></i>Clicked sales<span>${money(t.revenueClick)} · ${t.purchasesClick}</span></div>
       <div class="trow"><i style="background:${VIEW_COLOR}"></i>View-through<span>${money(t.revenueView)} · ${t.purchasesView}</span></div>
-      <div class="trow">Spend<span>${money(t.spend)}</span></div>
-      <div class="trow">Click-only ROAS<span>${xFmt(clickRoas(t))}</span></div>`;
+      <div class="trow">Spend<span>${money(t.spend)}</span></div>`;
     tip.style.display = 'block';
     const box = el.getBoundingClientRect(), wb = wrap.getBoundingClientRect();
     let left = box.left - wb.left + box.width / 2 - tip.offsetWidth / 2;
@@ -2137,7 +2133,7 @@ function renderPaidMonthTable(months){
   document.getElementById('paidHistRows').innerHTML = [...months].reverse().map(r=>{
     const partial = r.month >= thisMonthKey;
     return `<tr><td>${mLabel(r.month)}${partial ? ' <span class="sub">(so far)</span>' : ''}</td><td>${money(r.spend)}</td><td>${money(r.revenue)}</td>
-      <td>${xFmt(metaRoas(r))}</td><td>${xFmt(clickRoas(r))}</td><td>${r.purchases} <span class="sub">(${r.purchasesClick} / ${r.purchasesView})</span></td>
+      <td>${xFmt(metaRoas(r))}</td><td>${r.purchases} <span class="sub">(${r.purchasesClick} / ${r.purchasesView})</span></td>
       <td>${costPerClickSale(r) ? money(costPerClickSale(r)) : '—'}</td><td>${money2(r.cpm)}</td><td>${r.ctr.toFixed(2)}%</td><td>${r.frequency.toFixed(2)}</td><td>${r.reach.toLocaleString()}</td></tr>`;
   }).join('');
 }
@@ -2151,7 +2147,7 @@ const objectiveName = code => OBJECTIVE_NAMES[code] || (code ? code.replace(/^OU
 
 function renderPaidCampaigns(campaigns){
   const body = document.getElementById('paidCampaignRows');
-  if(!campaigns.length){ body.innerHTML = '<tr><td colspan="8" class="placeholder-note">No campaigns in this period.</td></tr>'; return; }
+  if(!campaigns.length){ body.innerHTML = '<tr><td colspan="7" class="placeholder-note">No campaigns in this period.</td></tr>'; return; }
   const latest = c => c.months.map(x=> x.month).sort().pop();
   const list = [...campaigns].sort((a,b)=> latest(b).localeCompare(latest(a)) || sumRows(b.months).spend - sumRows(a.months).spend);
   body.innerHTML = '';
@@ -2165,11 +2161,11 @@ function renderPaidCampaigns(campaigns){
     tr.innerHTML = `<td><span class="caret">▸</span> ${esc(c.name)}<br><span class="sub" style="font-size:11.5px;margin-left:16px">${span}${c.dailyBudget ? ` · $${c.dailyBudget}/day` : ''}</span></td>
       <td>${esc(objectiveName(c.objective))}</td>
       <td><span class="status-pill" style="${active ? '' : 'background:var(--cream-2);color:var(--muted)'}">${active ? 'Active' : (c.status || '').charAt(0) + (c.status || '').slice(1).toLowerCase()}</span></td>
-      <td>${money(t.spend)}</td><td>${xFmt(metaRoas(t))}</td><td>${xFmt(clickRoas(t))}</td>
+      <td>${money(t.spend)}</td><td>${xFmt(metaRoas(t))}</td>
       <td>${t.purchases} <span class="sub">(${t.purchasesClick} / ${t.purchasesView})</span></td><td>${costPerClickSale(t) ? money(costPerClickSale(t)) : '—'}</td>`;
     const subRows = months.map(r=>{
       const s = document.createElement('tr'); s.className = 'camp-month'; s.hidden = true;
-      s.innerHTML = `<td>${mLabel(r.month)}</td><td></td><td></td><td>${money(r.spend)}</td><td>${xFmt(metaRoas(r))}</td><td>${xFmt(clickRoas(r))}</td>
+      s.innerHTML = `<td>${mLabel(r.month)}</td><td></td><td></td><td>${money(r.spend)}</td><td>${xFmt(metaRoas(r))}</td>
         <td>${r.purchases} (${r.purchasesClick} / ${r.purchasesView})</td><td>${costPerClickSale(r) ? money(costPerClickSale(r)) : '—'}</td>`;
       return s;
     });
@@ -2182,7 +2178,7 @@ function renderPaidCampaigns(campaigns){
 
 function renderPaidAds(ads){
   const body = document.getElementById('paidAdRows');
-  if(!ads.length){ body.innerHTML = '<tr><td colspan="7" class="placeholder-note">No ad data.</td></tr>'; return; }
+  if(!ads.length){ body.innerHTML = '<tr><td colspan="6" class="placeholder-note">No ad data.</td></tr>'; return; }
   const ms = [...new Set(ads.map(a=> a.month))].sort();
   document.getElementById('paidAdsRange').textContent = `${mLabel(ms[0], { month:'short' })} – ${mLabel(ms[ms.length-1])}`;
   const by = {};
@@ -2190,7 +2186,7 @@ function renderPaidAds(ads){
   body.innerHTML = Object.entries(by).map(([name, v])=> ({ name, campaign: v.campaign, t: sumRows(v.rows) }))
     .filter(x=> x.t.spend >= 1).sort((a,b)=> b.t.spend - a.t.spend).slice(0, 12)
     .map(({ name, campaign, t })=> `<tr><td>${esc(name)}<br><span class="sub" style="font-size:11.5px">${esc(campaign)}</span></td><td>${money(t.spend)}</td>
-      <td>${t.purchases} <span class="sub">(${t.purchasesClick} / ${t.purchasesView})</span></td><td>${xFmt(clickRoas(t))}</td>
+      <td>${t.purchases} <span class="sub">(${t.purchasesClick} / ${t.purchasesView})</span></td>
       <td>${t.impressions ? (t.linkClicks / t.impressions * 100).toFixed(2) + '%' : '—'}</td><td>${t.impressions ? money2(t.spend / t.impressions * 1000) : '—'}</td><td>${t.addToCart}</td></tr>`).join('');
 }
 
@@ -2199,14 +2195,14 @@ const PLACEMENT_NAMES = { 'facebook/feed':'Facebook Feed', 'instagram/feed':'Ins
   'facebook/marketplace':'Facebook Marketplace', 'instagram/instagram_explore':'Instagram Explore', 'instagram/instagram_explore_grid_home':'Instagram Explore',
   'facebook/instream_video':'Facebook In-stream video', 'audience_network/an_classic':'Audience Network', 'threads/threads_feed':'Threads' };
 function renderPaidAudience(ageGender, placements){
-  const rowsHtml = (groups)=> groups.map(([label, t])=> `<tr><td>${esc(label)}</td><td>${money(t.spend)}</td><td>${t.purchasesClick}</td><td>${xFmt(clickRoas(t))}</td>
+  const rowsHtml = (groups)=> groups.map(([label, t])=> `<tr><td>${esc(label)}</td><td>${money(t.spend)}</td><td>${t.purchasesClick}</td>
     <td>${t.impressions ? (t.linkClicks / t.impressions * 100).toFixed(2) + '%' : '—'}</td></tr>`).join('');
   const ages = {};
   ageGender.forEach(r=>{ (ages[r.age] = ages[r.age] || []).push(r); });
   const ageOrder = ['18-24','25-34','35-44','45-54','55-64','65+','Unknown'];
   document.getElementById('paidAgeRows').innerHTML = rowsHtml(Object.entries(ages)
     .map(([a, rs])=> [a, sumRows(rs)]).filter(([, t])=> t.spend >= 1)
-    .sort((a,b)=> ageOrder.indexOf(a[0]) - ageOrder.indexOf(b[0]))) || '<tr><td colspan="5" class="placeholder-note">No data.</td></tr>';
+    .sort((a,b)=> ageOrder.indexOf(a[0]) - ageOrder.indexOf(b[0]))) || '<tr><td colspan="4" class="placeholder-note">No data.</td></tr>';
   const pl = {}, other = [];
   placements.forEach(r=>{
     const name = PLACEMENT_NAMES[`${r.platform}/${r.position}`] || `${r.platform} ${r.position}`.replace(/_/g, ' ');
@@ -2215,7 +2211,7 @@ function renderPaidAudience(ageGender, placements){
   const groups = Object.entries(pl).map(([n, rs])=> [n, sumRows(rs)]).sort((a,b)=> b[1].spend - a[1].spend);
   const big = groups.filter(([, t])=> t.spend >= 10), small = groups.filter(([, t])=> t.spend < 10);
   if(small.length) big.push(['Other placements', sumRows(small.map(([, t])=> t))]);
-  document.getElementById('paidPlacementRows').innerHTML = rowsHtml(big) || '<tr><td colspan="5" class="placeholder-note">No data.</td></tr>';
+  document.getElementById('paidPlacementRows').innerHTML = rowsHtml(big) || '<tr><td colspan="4" class="placeholder-note">No data.</td></tr>';
 }
 
 /* ================= init ================= */
