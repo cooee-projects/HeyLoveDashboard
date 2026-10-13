@@ -149,6 +149,9 @@ module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  // Month-by-month history lives in lib/ (Vercel plan limits the number of /api functions).
+  if (req.query?.view === 'history') return require('../lib/paid-history.js')(req, res);
+
   if (!process.env.META_TOKEN || !process.env.META_AD_ACCOUNT) {
     return res.status(500).json({ error: 'META_TOKEN / META_AD_ACCOUNT not set' });
   }
